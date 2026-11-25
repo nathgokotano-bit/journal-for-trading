@@ -1,0 +1,4440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRADE JOURNAL — Personal Execution Log</title>
+  <!-- Google Fonts: Inter (UI & Notes) + JetBrains Mono (Numbers, Tickers, Badges) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS & RESET (Strict Flat 2D Dark Mode)
+       ========================================================================== */
+    :root {
+      --bg-page: #0D0F12;
+      --bg-surface: #161A20;
+      --bg-input: #111419;
+      --bg-hover: #1C2129;
+      --bg-active: #222833;
+
+      --border-subtle: #1E242D;
+      --border-strong: #2D3644;
+      --border-focus: #58A6FF;
+
+      --text-primary: #E6EDF3;
+      --text-secondary: #8B949E;
+      --text-muted: #656E7A;
+
+      --green: #22C55E;
+      --green-bg: rgba(34, 197, 94, 0.11);
+      --green-border: rgba(34, 197, 94, 0.32);
+
+      --red: #EF4444;
+      --red-bg: rgba(239, 68, 68, 0.11);
+      --red-border: rgba(239, 68, 68, 0.32);
+
+      --amber: #F59E0B;
+      --amber-bg: rgba(245, 158, 11, 0.12);
+      --amber-border: rgba(245, 158, 11, 0.32);
+
+      --slate: #94A3B8;
+      --slate-bg: rgba(148, 163, 184, 0.12);
+      --slate-border: rgba(148, 163, 184, 0.28);
+
+      --accent: #3B82F6;
+      --accent-bg: rgba(59, 130, 246, 0.14);
+      --accent-border: rgba(59, 130, 246, 0.45);
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+
+      --header-height: 52px;
+      --sidebar-width: 388px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Subtle dark scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-page);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #252C37;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #354050;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    /* ==========================================================================
+       2. TOP HEADER BAR
+       ========================================================================== */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: var(--header-height);
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      user-select: none;
+    }
+
+    .brand-mark {
+      width: 22px;
+      height: 22px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+      border: 1px solid var(--border-strong);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .db-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 2px 7px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+    }
+
+    .db-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* ==========================================================================
+       3. BUTTONS & FORM PRIMITIVES
+       ========================================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 11px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      background-color: var(--bg-hover);
+      border-color: #3D4859;
+    }
+
+    .btn:focus-visible {
+      outline: 1px solid var(--border-focus);
+      outline-offset: 1px;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background-color: var(--text-primary);
+      color: #0D0F12;
+      border-color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: #FFFFFF;
+      border-color: #FFFFFF;
+    }
+
+    .btn-accent {
+      background-color: var(--accent-bg);
+      color: #93C5FD;
+      border-color: var(--accent-border);
+    }
+
+    .btn-accent:hover:not(:disabled) {
+      background-color: rgba(59, 130, 246, 0.22);
+      border-color: var(--accent);
+    }
+
+    .btn-danger {
+      background-color: var(--red-bg);
+      color: #FCA5A5;
+      border-color: var(--red-border);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background-color: rgba(239, 68, 68, 0.22);
+      border-color: var(--red);
+    }
+
+    .btn-ghost {
+      border-color: transparent;
+      background-color: transparent;
+      color: var(--text-secondary);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      background-color: var(--bg-hover);
+      border-color: var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    .btn-sm {
+      height: 28px;
+      padding: 0 9px;
+      font-size: 11.5px;
+    }
+
+    .btn-icon {
+      width: 32px;
+      padding: 0;
+    }
+
+    .btn-icon-sm {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+    }
+
+    /* ==========================================================================
+       4. APP SHELL (Collapsible Left Drawer + Main Content)
+       ========================================================================== */
+    .app-shell {
+      display: flex;
+      min-height: calc(100vh - var(--header-height));
+      position: relative;
+    }
+
+    .drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: var(--header-height) 0 0 0;
+      background: rgba(7, 9, 11, 0.72);
+      z-index: 30;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      background-color: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      height: calc(100vh - var(--header-height));
+      position: sticky;
+      top: var(--header-height);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left 0.2s ease, opacity 0.16s ease;
+      z-index: 35;
+    }
+
+    .app-shell.sidebar-collapsed .sidebar {
+      margin-left: calc(var(--sidebar-width) * -1);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      background-color: var(--bg-surface);
+      z-index: 5;
+    }
+
+    .sidebar-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+    }
+
+    .edit-mode-pill {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1px solid var(--amber-border);
+    }
+
+    .sidebar.is-editing .edit-mode-pill {
+      display: inline-block;
+    }
+
+    /* ==========================================================================
+       5. LOG TRADE FORM
+       ========================================================================== */
+    .trade-form {
+      padding: 14px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .form-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .section-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+    }
+
+    .field-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .field-label {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .input, .select, .textarea {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      padding: 0 10px;
+      height: 34px;
+      font-size: 12.5px;
+      transition: border-color 0.12s ease, background-color 0.12s ease;
+    }
+
+    .input:hover, .select:hover, .textarea:hover {
+      border-color: var(--border-strong);
+    }
+
+    .input:focus, .select:focus, .textarea:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      background-color: #0E1116;
+    }
+
+    .input.mono-input {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+
+    .select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B949E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 9px center;
+      padding-right: 28px;
+      cursor: pointer;
+    }
+
+    .textarea {
+      height: auto;
+      min-height: 74px;
+      padding: 8px 10px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    /* Dark calendar icon hint */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.7);
+      cursor: pointer;
+    }
+
+    /* Quick ticker chips */
+    .quick-tickers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .ticker-chip {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-page);
+      color: var(--text-secondary);
+      transition: all 0.12s ease;
+    }
+
+    .ticker-chip:hover {
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .ticker-chip.active {
+      border-color: var(--border-strong);
+      background: var(--bg-active);
+      color: var(--text-primary);
+    }
+
+    /* Segmented Toggles (Long/Short, Win/Loss/BE) */
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 2px;
+      gap: 2px;
+      height: 34px;
+    }
+
+    .segmented-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .seg-btn {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.12s ease;
+      border: 1px solid transparent;
+    }
+
+    .seg-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .seg-btn.active-green {
+      background: var(--green-bg);
+      color: var(--green);
+      border-color: var(--green-border);
+    }
+
+    .seg-btn.active-red {
+      background: var(--red-bg);
+      color: var(--red);
+      border-color: var(--red-border);
+    }
+
+    .seg-btn.active-amber {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border-color: var(--amber-border);
+    }
+
+    .seg-btn.active-neutral {
+      background: var(--bg-active);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    /* Multi-select Confluence Pills */
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .setup-pill {
+      padding: 5px 9px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      font-size: 11.5px;
+      font-weight: 500;
+      transition: all 0.12s ease;
+      user-select: none;
+    }
+
+    .setup-pill:hover {
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .setup-pill.selected {
+      background: var(--accent-bg);
+      border-color: var(--accent-border);
+      color: #93C5FD;
+    }
+
+    /* Live R-Multiple Preview inline */
+    .r-preview-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .r-preview-tag.positive { color: var(--green); }
+    .r-preview-tag.negative { color: var(--red); }
+
+    /* Pre-Trade Rule Checklist */
+    .checklist-counter {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-input);
+      color: var(--text-secondary);
+    }
+
+    .checklist-counter.complete {
+      background: var(--green-bg);
+      border-color: var(--green-border);
+      color: var(--green);
+    }
+
+    .checklist-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 6px 7px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.12s ease;
+    }
+
+    .check-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .check-item input[type="checkbox"] {
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      border-radius: 3px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-page);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.12s ease;
+    }
+
+    .check-item input[type="checkbox"]:checked {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .check-item input[type="checkbox"]:checked::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 4px;
+      height: 8px;
+      border: solid #0D0F12;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .check-item-text {
+      font-size: 12px;
+      line-height: 1.38;
+      color: var(--text-primary);
+    }
+
+    /* Visual Chart Upload / Paste Zones */
+    .chart-upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .dropzone {
+      position: relative;
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-md);
+      background: var(--bg-input);
+      min-height: 112px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: border-color 0.14s ease, background-color 0.14s ease;
+      outline: none;
+    }
+
+    .dropzone:hover {
+      border-color: #465366;
+    }
+
+    .dropzone.paste-target {
+      border-style: solid;
+      border-color: var(--border-focus);
+      background: rgba(88, 166, 255, 0.05);
+    }
+
+    .dropzone.drag-over {
+      border-style: solid;
+      border-color: var(--green);
+      background: var(--green-bg);
+    }
+
+    .dropzone-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(13, 15, 18, 0.55);
+      gap: 4px;
+    }
+
+    .dropzone-title {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .paste-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border-strong);
+      transition: background-color 0.12s ease;
+    }
+
+    .dropzone.paste-target .paste-dot {
+      background: var(--border-focus);
+    }
+
+    .dropzone.paste-target .dropzone-title {
+      color: var(--text-primary);
+    }
+
+    .paste-badge {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--border-focus);
+      display: none;
+    }
+
+    .dropzone.paste-target .paste-badge {
+      display: inline;
+    }
+
+    .dropzone-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .dropzone-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .dropzone-upload-btn {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 3px 8px;
+      transition: background-color 0.12s ease;
+    }
+
+    .dropzone-upload-btn:hover {
+      background: var(--bg-hover);
+    }
+
+    .dropzone-preview {
+      flex: 1;
+      position: relative;
+      min-height: 86px;
+      background: #080A0C;
+      display: none;
+    }
+
+    .dropzone.has-image .dropzone-empty {
+      display: none;
+    }
+
+    .dropzone.has-image .dropzone-preview {
+      display: block;
+    }
+
+    .dropzone-preview img {
+      width: 100%;
+      height: 92px;
+      object-fit: cover;
+      display: block;
+      cursor: pointer;
+    }
+
+    .dropzone-preview-actions {
+      position: absolute;
+      inset: auto 0 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 5px;
+      background: rgba(13, 15, 18, 0.86);
+      border-top: 1px solid var(--border-subtle);
+      gap: 4px;
+    }
+
+    .img-size-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--text-secondary);
+    }
+
+    .preview-btn-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .mini-action-btn {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+    }
+
+    .mini-action-btn:hover {
+      background: var(--bg-hover);
+    }
+
+    .mini-action-btn.remove {
+      color: #FCA5A5;
+      border-color: var(--red-border);
+      background: rgba(239, 68, 68, 0.12);
+    }
+
+    .paste-help-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .paste-help-note kbd {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--bg-page);
+      border: 1px solid var(--border-strong);
+      border-radius: 3px;
+      padding: 0 4px;
+      color: var(--text-secondary);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .form-actions .btn-primary {
+      flex: 1;
+      height: 36px;
+      font-size: 12.5px;
+    }
+
+    .form-actions .btn-cancel {
+      height: 36px;
+    }
+
+    /* ==========================================================================
+       6. MAIN CONTENT AREA (KPIs + Filter Bar + Trade Views)
+       ========================================================================== */
+    .main-content {
+      flex: 1;
+      min-width: 0;
+      padding: 18px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* 4 KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 13px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+
+    .kpi-value {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      line-height: 1.15;
+    }
+
+    .kpi-value.positive { color: var(--green); }
+    .kpi-value.negative { color: var(--red); }
+
+    .kpi-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Compact Filter Bar */
+    .filter-bar {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .filter-select {
+      height: 30px;
+      font-size: 12px;
+      padding: 0 26px 0 9px;
+      min-width: 124px;
+      width: auto;
+      background-color: var(--bg-input);
+    }
+
+    .filter-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .trade-count-readout {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .view-toggle {
+      display: inline-flex;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .view-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 26px;
+      padding: 0 9px;
+      border-radius: var(--radius-sm);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.12s ease;
+    }
+
+    .view-toggle-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .view-toggle-btn.active {
+      background: var(--bg-active);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+    }
+
+    /* ==========================================================================
+       7. CARD GALLERY VIEW
+       ========================================================================== */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 455px), 1fr));
+      gap: 14px;
+    }
+
+    .trade-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: border-color 0.14s ease;
+    }
+
+    .trade-card:hover {
+      border-color: var(--border-strong);
+    }
+
+    .trade-card-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card-id-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .card-ticker-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .ticker-text {
+      font-family: var(--font-mono);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+    }
+
+    .card-date-session {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .card-pnl-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .card-pnl-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .pnl-value {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .pnl-value.positive { color: var(--green); }
+    .pnl-value.negative { color: var(--red); }
+    .pnl-value.neutral { color: var(--slate); }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    .badge-green {
+      background: var(--green-bg);
+      color: var(--green);
+      border-color: var(--green-border);
+    }
+
+    .badge-red {
+      background: var(--red-bg);
+      color: var(--red);
+      border-color: var(--red-border);
+    }
+
+    .badge-amber {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border-color: var(--amber-border);
+    }
+
+    .badge-slate {
+      background: var(--slate-bg);
+      color: var(--slate);
+      border-color: var(--slate-border);
+    }
+
+    .badge-neutral {
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      border-color: var(--border-subtle);
+    }
+
+    /* Chart Showcase on Gallery Card */
+    .card-charts {
+      background: #0A0C0F;
+      border-bottom: 1px solid var(--border-subtle);
+      display: grid;
+      gap: 1px;
+      background-color: var(--border-subtle);
+    }
+
+    .card-charts.two-up {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .card-charts.one-up {
+      grid-template-columns: 1fr;
+    }
+
+    .chart-thumb-btn {
+      position: relative;
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: #0A0C0F;
+      overflow: hidden;
+      padding: 0;
+      border: none;
+    }
+
+    .card-charts.one-up .chart-thumb-btn {
+      aspect-ratio: 16 / 9;
+      max-height: 260px;
+    }
+
+    .chart-thumb-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.2s ease, opacity 0.15s ease;
+    }
+
+    .chart-thumb-btn:hover img {
+      transform: scale(1.02);
+      opacity: 0.92;
+    }
+
+    .chart-tag-overlay {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(13, 15, 18, 0.85);
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .chart-zoom-hint {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(13, 15, 18, 0.85);
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      opacity: 0;
+      transition: opacity 0.14s ease;
+    }
+
+    .chart-thumb-btn:hover .chart-zoom-hint {
+      opacity: 1;
+    }
+
+    .no-charts-strip {
+      padding: 12px 14px;
+      background: #111419;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    /* Card Body */
+    .card-body {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .card-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .tag-pill {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .card-metrics-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 14px;
+      padding: 8px 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      font-size: 11.5px;
+    }
+
+    .metric-kv {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .metric-k {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .metric-v {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .checklist-toggle-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      transition: all 0.12s ease;
+    }
+
+    .checklist-toggle-pill:hover {
+      border-color: #4A5668;
+      color: var(--text-primary);
+    }
+
+    .checklist-toggle-pill.all-passed {
+      background: var(--green-bg);
+      border-color: var(--green-border);
+      color: var(--green);
+    }
+
+    .card-checklist-details {
+      display: none;
+      background: #101318;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .card-checklist-details.open {
+      display: flex;
+    }
+
+    .detail-rule-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+
+    .detail-rule-row.passed {
+      color: var(--text-primary);
+    }
+
+    .rule-status-icon {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      width: 14px;
+      flex-shrink: 0;
+    }
+
+    .rule-status-icon.pass { color: var(--green); }
+    .rule-status-icon.fail { color: var(--red); }
+
+    .card-notes {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .card-footer {
+      padding: 9px 14px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(13, 15, 18, 0.3);
+    }
+
+    .card-footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    /* ==========================================================================
+       8. COMPACT TABLE VIEW
+       ========================================================================== */
+    .table-container {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow-x: auto;
+    }
+
+    .trade-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+      text-align: left;
+    }
+
+    .trade-table th {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      background: #12161C;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    .trade-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+      font-size: 12px;
+    }
+
+    .trade-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .trade-table tbody tr:hover {
+      background-color: var(--bg-hover);
+    }
+
+    .num-col {
+      text-align: right;
+    }
+
+    .table-sub {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .table-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      max-width: 220px;
+    }
+
+    .table-tag-pill {
+      font-size: 10.5px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .mini-thumbs {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .mini-thumb-btn {
+      position: relative;
+      width: 48px;
+      height: 32px;
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      background: #0A0C0F;
+      padding: 0;
+      flex-shrink: 0;
+      transition: border-color 0.12s ease;
+    }
+
+    .mini-thumb-btn:hover {
+      border-color: var(--border-focus);
+    }
+
+    .mini-thumb-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .mini-thumb-label {
+      position: absolute;
+      bottom: 1px;
+      left: 2px;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 700;
+      padding: 0 3px;
+      border-radius: 2px;
+      background: rgba(13, 15, 18, 0.85);
+      color: var(--text-primary);
+    }
+
+    .table-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    /* ==========================================================================
+       9. EMPTY STATE
+       ========================================================================== */
+    .empty-state {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 48px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .empty-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .empty-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .empty-desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      max-width: 440px;
+      line-height: 1.5;
+    }
+
+    .empty-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    /* ==========================================================================
+       10. FULL-SCREEN LIGHTBOX MODAL
+       ========================================================================== */
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(7, 9, 12, 0.95);
+      display: none;
+      flex-direction: column;
+    }
+
+    .lightbox-overlay.open {
+      display: flex;
+    }
+
+    .lightbox-topbar {
+      height: 52px;
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lightbox-headline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .lightbox-title {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lightbox-switcher {
+      display: inline-flex;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 2px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .lb-switch-btn {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+    }
+
+    .lb-switch-btn:hover:not(:disabled) {
+      color: var(--text-primary);
+    }
+
+    .lb-switch-btn.active {
+      background: var(--bg-active);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    .lb-switch-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .lightbox-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .lightbox-stage {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      position: relative;
+    }
+
+    .lightbox-stage.zoomed {
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      cursor: zoom-in;
+      user-select: none;
+      display: block;
+      margin: auto;
+    }
+
+    .lightbox-stage.zoomed .lightbox-img {
+      max-width: none;
+      max-height: none;
+      cursor: zoom-out;
+    }
+
+    .lightbox-infobar {
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px 20px;
+      max-height: 28vh;
+      overflow-y: auto;
+    }
+
+    .lb-meta-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 16px;
+    }
+
+    .lb-notes-box {
+      flex: 1;
+      min-width: 240px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      border-left: 1px solid var(--border-subtle);
+      padding-left: 14px;
+      white-space: pre-wrap;
+    }
+
+    /* ==========================================================================
+       11. CUSTOM CONFIRMATION MODAL & TOAST NOTIFICATIONS
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 110;
+      background: rgba(7, 9, 12, 0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 390px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    /* Toast stack */
+    .toast-container {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 120;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      max-width: calc(100vw - 32px);
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-left: 3px solid var(--border-focus);
+      border-radius: var(--radius-md);
+      padding: 10px 13px;
+      font-size: 12px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 220px;
+      max-width: 360px;
+      animation: toastIn 0.16s ease forwards;
+    }
+
+    .toast.success { border-left-color: var(--green); }
+    .toast.error { border-left-color: var(--red); }
+    .toast.warning { border-left-color: var(--amber); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==========================================================================
+       12. RESPONSIVE BREAKPOINTS
+       ========================================================================== */
+    .btn-label-short { display: none; }
+
+    @media (max-width: 1120px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1023px) {
+      .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        bottom: 0;
+        width: min(390px, 92vw);
+        height: calc(100vh - var(--header-height));
+        margin-left: 0;
+        transform: translateX(0);
+        transition: transform 0.2s ease;
+        z-index: 38;
+      }
+
+      .app-shell.sidebar-collapsed .sidebar {
+        margin-left: 0;
+        transform: translateX(-100%);
+        opacity: 1;
+        pointer-events: none;
+      }
+
+      .app-shell:not(.sidebar-collapsed) .drawer-backdrop {
+        display: block;
+      }
+
+      .main-content {
+        padding: 14px 14px 36px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .db-indicator { display: none; }
+      .btn-label-full { display: none; }
+      .btn-label-short { display: inline; }
+
+      .app-header {
+        padding: 0 10px;
+      }
+
+      .kpi-value {
+        font-size: 18px;
+      }
+
+      .filter-select {
+        flex: 1 1 130px;
+      }
+
+      .filter-meta {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .card-charts.two-up {
+        grid-template-columns: 1fr;
+      }
+
+      .lightbox-topbar {
+        height: auto;
+        flex-wrap: wrap;
+        padding: 8px 12px;
+      }
+
+      .lb-notes-box {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid var(--border-subtle);
+        padding-top: 8px;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      .chart-upload-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================================================
+       TOP HEADER BAR
+       ======================================================================== -->
+  <header class="app-header">
+    <div class="header-left">
+      <button type="button" id="toggleSidebarBtn" class="btn" title="Toggle Log Trade Drawer" aria-expanded="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+        <span class="btn-label-full" id="toggleSidebarLabel">Hide Form</span>
+        <span class="btn-label-short" id="toggleSidebarLabelShort">Log</span>
+      </button>
+
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="4" x2="7" y2="20"></line>
+            <rect x="4.5" y="8" width="5" height="7" fill="#22C55E" stroke="none"></rect>
+            <line x1="17" y1="3" x2="17" y2="19"></line>
+            <rect x="14.5" y="6" width="5" height="6" fill="#EF4444" stroke="none"></rect>
+          </svg>
+        </span>
+        <h1 class="brand-title">TRADE JOURNAL</h1>
+      </div>
+
+      <span class="db-indicator" id="dbStatusBadge" title="Local IndexedDB Storage">
+        <span class="db-dot"></span>
+        <span>IndexedDB</span>
+      </span>
+    </div>
+
+    <div class="header-right">
+      <input type="file" id="importFileInput" accept=".json,application/json" class="sr-only" />
+      <button type="button" id="importBackupBtn" class="btn" title="Import Backup (JSON)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span class="btn-label-full">Import Backup (JSON)</span>
+        <span class="btn-label-short">Import</span>
+      </button>
+
+      <button type="button" id="exportBackupBtn" class="btn" title="Export Backup (JSON)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <span class="btn-label-full">Export Backup (JSON)</span>
+        <span class="btn-label-short">Export</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       APP SHELL (SIDEBAR DRAWER + MAIN WORKSPACE)
+       ======================================================================== -->
+  <div class="app-shell" id="appShell">
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+    <!-- LEFT COLLAPSIBLE SIDEBAR: LOG / EDIT TRADE FORM -->
+    <aside class="sidebar" id="tradeSidebar" aria-label="Log Trade Form">
+      <div class="sidebar-header">
+        <div class="sidebar-title-wrap">
+          <h2 class="sidebar-title" id="formHeading">Log Trade</h2>
+          <span class="edit-mode-pill" id="editModePill">Editing</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button type="button" id="resetFormBtn" class="btn btn-ghost btn-sm" title="Reset form fields">Clear</button>
+          <button type="button" id="closeSidebarBtn" class="btn btn-ghost btn-icon-sm" title="Collapse form" aria-label="Collapse form">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <form id="tradeForm" class="trade-form" novalidate>
+        <!-- 1. DATE & SESSION -->
+        <div class="form-section">
+          <div class="section-label">Date &amp; Session</div>
+          <div class="field-grid-2">
+            <div class="field">
+              <label class="field-label" for="tradeDate">Date</label>
+              <input type="date" id="tradeDate" class="input mono-input" required />
+            </div>
+            <div class="field">
+              <label class="field-label" for="tradeSession">Session</label>
+              <select id="tradeSession" class="select">
+                <option value="NY Open (9:30 AM)">NY Open (9:30 AM)</option>
+                <option value="London">London</option>
+                <option value="Asia">Asia</option>
+                <option value="PM Session">PM Session</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. INSTRUMENT & DIRECTION -->
+        <div class="form-section">
+          <div class="section-label">Instrument &amp; Direction</div>
+          <div class="field-grid-2">
+            <div class="field">
+              <label class="field-label" for="tradeInstrument">Ticker</label>
+              <input
+                type="text"
+                id="tradeInstrument"
+                class="input mono-input"
+                list="instrumentSuggestions"
+                value="US30"
+                placeholder="US30"
+                autocomplete="off"
+                required
+              />
+              <datalist id="instrumentSuggestions">
+                <option value="US30"></option>
+                <option value="NQ"></option>
+                <option value="ES"></option>
+                <option value="XAUUSD"></option>
+                <option value="EURUSD"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <span class="field-label">Direction</span>
+              <div class="segmented" role="group" aria-label="Trade direction">
+                <button type="button" class="seg-btn active-green" data-direction="Long" id="dirLongBtn">LONG</button>
+                <button type="button" class="seg-btn" data-direction="Short" id="dirShortBtn">SHORT</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-tickers" id="quickTickers" aria-label="Quick ticker presets">
+            <button type="button" class="ticker-chip active" data-ticker="US30">US30</button>
+            <button type="button" class="ticker-chip" data-ticker="NQ">NQ</button>
+            <button type="button" class="ticker-chip" data-ticker="ES">ES</button>
+            <button type="button" class="ticker-chip" data-ticker="XAUUSD">XAUUSD</button>
+            <button type="button" class="ticker-chip" data-ticker="EURUSD">EURUSD</button>
+          </div>
+        </div>
+
+        <!-- 3. SETUP MODEL (CONFLUENCE TAGS) -->
+        <div class="form-section">
+          <div class="section-label-row">
+            <span class="section-label">Setup Model (Confluence Tags)</span>
+            <span class="mono" style="font-size:10.5px;color:var(--text-muted);" id="selectedSetupsCount">0 selected</span>
+          </div>
+          <div class="pill-group" id="setupPillsContainer">
+            <button type="button" class="setup-pill" data-setup="Liquidity Sweep">Liquidity Sweep</button>
+            <button type="button" class="setup-pill" data-setup="IFVG">IFVG</button>
+            <button type="button" class="setup-pill" data-setup="HTF Bias Aligned">HTF Bias Aligned</button>
+            <button type="button" class="setup-pill" data-setup="FVG Reclaim">FVG Reclaim</button>
+            <button type="button" class="setup-pill" data-setup="MSS / CISD">MSS / CISD</button>
+          </div>
+        </div>
+
+        <!-- 4. RISK & EXECUTION -->
+        <div class="form-section">
+          <div class="section-label-row">
+            <span class="section-label">Risk &amp; Execution</span>
+            <span class="r-preview-tag" id="liveRPreview">R: —</span>
+          </div>
+          <div class="field-grid-2">
+            <div class="field">
+              <label class="field-label" for="riskAmount">Risk Amount ($)</label>
+              <input type="number" id="riskAmount" class="input mono-input" step="any" min="0" placeholder="250" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="plannedRR">Planned R:R</label>
+              <input type="text" id="plannedRR" class="input mono-input" placeholder="1:2" />
+            </div>
+          </div>
+
+          <div class="field-grid-2">
+            <div class="field">
+              <label class="field-label" for="netPnl">Net P&amp;L ($)</label>
+              <input type="number" id="netPnl" class="input mono-input" step="any" placeholder="500.00" required />
+            </div>
+            <div class="field">
+              <span class="field-label">Result</span>
+              <div class="segmented segmented-3" role="group" aria-label="Trade result">
+                <button type="button" class="seg-btn" data-result="Win" id="resWinBtn">Win</button>
+                <button type="button" class="seg-btn" data-result="Loss" id="resLossBtn">Loss</button>
+                <button type="button" class="seg-btn active-amber" data-result="Break-Even" id="resBeBtn">BE</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. PRE-TRADE RULE CHECKLIST (FRICTION FILTER) -->
+        <div class="form-section">
+          <div class="section-label-row">
+            <span class="section-label">Pre-Trade Rule Checklist</span>
+            <span class="checklist-counter" id="checklistCounter">0/4</span>
+          </div>
+          <div class="checklist-box">
+            <label class="check-item">
+              <input type="checkbox" id="ruleLiquiditySweep" data-rule="liquiditySweep" />
+              <span class="check-item-text">Waited for liquidity sweep first</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="ruleIfvgClose" data-rule="ifvgClose" />
+              <span class="check-item-text">Confirmed candle close through IFVG</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="ruleMaxDailyLimit" data-rule="maxDailyLimit" />
+              <span class="check-item-text">Risked within max daily limit</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="ruleBoardroomTest" data-rule="boardroomTest" />
+              <span class="check-item-text">Passes the "Boardroom Test" (Can I justify this trade to a $1M risk committee?)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 6. VISUAL CHART UPLOAD (BEFORE & AFTER) -->
+        <div class="form-section">
+          <div class="section-label">Visual Charts (Before &amp; After)</div>
+          <div class="chart-upload-grid">
+            <!-- Before Chart Zone -->
+            <div class="dropzone paste-target" id="beforeDropzone" data-slot="before" tabindex="0">
+              <div class="dropzone-top">
+                <span class="dropzone-title"><span class="paste-dot"></span>Before Chart</span>
+                <span class="paste-badge">Ctrl+V</span>
+              </div>
+              <input type="file" id="beforeFileInput" accept="image/*" class="sr-only" />
+              <div class="dropzone-empty" data-slot-area="before">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#656E7A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span class="dropzone-hint">Drop or paste chart</span>
+                <button type="button" class="dropzone-upload-btn" data-upload-trigger="before">Upload File</button>
+              </div>
+              <div class="dropzone-preview">
+                <img id="beforePreviewImg" alt="Before chart preview" />
+                <div class="dropzone-preview-actions">
+                  <span class="img-size-label" id="beforeSizeLabel"></span>
+                  <div class="preview-btn-group">
+                    <button type="button" class="mini-action-btn" data-upload-trigger="before">Replace</button>
+                    <button type="button" class="mini-action-btn remove" data-remove-chart="before">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- After Chart Zone -->
+            <div class="dropzone" id="afterDropzone" data-slot="after" tabindex="0">
+              <div class="dropzone-top">
+                <span class="dropzone-title"><span class="paste-dot"></span>After Chart</span>
+                <span class="paste-badge">Ctrl+V</span>
+              </div>
+              <input type="file" id="afterFileInput" accept="image/*" class="sr-only" />
+              <div class="dropzone-empty" data-slot-area="after">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#656E7A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span class="dropzone-hint">Drop or paste chart</span>
+                <button type="button" class="dropzone-upload-btn" data-upload-trigger="after">Upload File</button>
+              </div>
+              <div class="dropzone-preview">
+                <img id="afterPreviewImg" alt="After chart preview" />
+                <div class="dropzone-preview-actions">
+                  <span class="img-size-label" id="afterSizeLabel"></span>
+                  <div class="preview-btn-group">
+                    <button type="button" class="mini-action-btn" data-upload-trigger="after">Replace</button>
+                    <button type="button" class="mini-action-btn remove" data-remove-chart="after">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="paste-help-note">
+            Click a chart box to target it, or press <kbd>Ctrl+V</kbd> / <kbd>⌘V</kbd> anywhere to auto-fill Before then After. Auto-compressed to WebP/JPEG.
+          </p>
+        </div>
+
+        <!-- 7. EXECUTION GRADE & NOTES -->
+        <div class="form-section">
+          <div class="section-label">Execution Grade &amp; Context</div>
+          <div class="field">
+            <label class="field-label" for="executionGrade">Execution Grade</label>
+            <select id="executionGrade" class="select">
+              <option value="A+ Followed All Rules">A+ Followed All Rules</option>
+              <option value="B Minor Hesitation">B Minor Hesitation</option>
+              <option value="C FOMO / Broke Rules">C FOMO / Broke Rules</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="tradeNotes">Macro / News Context &amp; Notes</label>
+            <textarea id="tradeNotes" class="textarea" placeholder="e.g., CPI at 8:30 AM, clean NY open expansion, London low swept before 1m IFVG close..."></textarea>
+          </div>
+        </div>
+
+        <!-- 8. FORM ACTIONS -->
+        <div class="form-actions">
+          <button type="submit" id="submitTradeBtn" class="btn btn-primary">Log Trade</button>
+          <button type="button" id="cancelEditBtn" class="btn btn-cancel" style="display:none;">Cancel Edit</button>
+        </div>
+      </form>
+    </aside>
+
+    <!-- MAIN CONTENT WORKSPACE -->
+    <main class="main-content">
+      <!-- TOP BAR: 4 DYNAMIC KPI CARDS -->
+      <section class="kpi-grid" aria-label="Performance KPIs">
+        <article class="kpi-card">
+          <span class="kpi-label">Total Net P&amp;L ($)</span>
+          <span class="kpi-value" id="kpiNetPnl">$0.00</span>
+          <span class="kpi-sub" id="kpiNetPnlSub">0 trades</span>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-label">Win Rate (%)</span>
+          <span class="kpi-value" id="kpiWinRate">—</span>
+          <span class="kpi-sub" id="kpiWinRateSub">0W · 0L · 0BE (excl. BE)</span>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-label">Rule Adherence Rate (%)</span>
+          <span class="kpi-value" id="kpiAdherence">—</span>
+          <span class="kpi-sub" id="kpiAdherenceSub">0 of 0 graded A+</span>
+        </article>
+
+        <article class="kpi-card">
+          <span class="kpi-label">Average R-Multiple</span>
+          <span class="kpi-value" id="kpiAvgR">—</span>
+          <span class="kpi-sub" id="kpiAvgRSub">Based on Risk &gt; $0</span>
+        </article>
+      </section>
+
+      <!-- COMPACT FILTER BAR + VIEW TOGGLE -->
+      <section class="filter-bar" aria-label="Trade Filters and View Controls">
+        <div class="filter-controls">
+          <select id="filterInstrument" class="select filter-select" aria-label="Filter by instrument">
+            <option value="">All Instruments</option>
+          </select>
+
+          <select id="filterSetup" class="select filter-select" aria-label="Filter by setup tag">
+            <option value="">All Setups</option>
+            <option value="Liquidity Sweep">Liquidity Sweep</option>
+            <option value="IFVG">IFVG</option>
+            <option value="HTF Bias Aligned">HTF Bias Aligned</option>
+            <option value="FVG Reclaim">FVG Reclaim</option>
+            <option value="MSS / CISD">MSS / CISD</option>
+          </select>
+
+          <select id="filterGrade" class="select filter-select" aria-label="Filter by execution grade">
+            <option value="">All Grades</option>
+            <option value="A+ Followed All Rules">A+ Followed All Rules</option>
+            <option value="B Minor Hesitation">B Minor Hesitation</option>
+            <option value="C FOMO / Broke Rules">C FOMO / Broke Rules</option>
+          </select>
+
+          <select id="filterResult" class="select filter-select" aria-label="Filter by result">
+            <option value="">All Results</option>
+            <option value="Win">Win</option>
+            <option value="Loss">Loss</option>
+            <option value="Break-Even">Break-Even</option>
+          </select>
+
+          <button type="button" id="resetFiltersBtn" class="btn btn-sm btn-ghost" style="display:none;">Reset Filters</button>
+        </div>
+
+        <div class="filter-meta">
+          <span class="trade-count-readout" id="tradeCountReadout">0 trades</span>
+          <div class="view-toggle" role="group" aria-label="View mode">
+            <button type="button" class="view-toggle-btn active" id="viewGalleryBtn" data-view="gallery">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>Gallery</span>
+            </button>
+            <button type="button" class="view-toggle-btn" id="viewTableBtn" data-view="table">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+              <span>Table</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRADE HISTORY & REVIEW CONTAINER -->
+      <section id="tradeHistoryContainer" aria-label="Trade History and Review"></section>
+    </main>
+  </div>
+
+  <!-- ========================================================================
+       FULL-SCREEN LIGHTBOX MODAL
+       ======================================================================== -->
+  <div class="lightbox-overlay" id="lightboxModal" role="dialog" aria-modal="true" aria-label="Chart Inspection Lightbox">
+    <div class="lightbox-topbar">
+      <div class="lightbox-headline">
+        <span class="lightbox-title" id="lbHeadline">US30</span>
+      </div>
+
+      <div class="lightbox-switcher" role="group" aria-label="Before and After chart toggle">
+        <button type="button" class="lb-switch-btn" id="lbBeforeBtn">Before</button>
+        <button type="button" class="lb-switch-btn" id="lbAfterBtn">After</button>
+      </div>
+
+      <div class="lightbox-controls">
+        <button type="button" class="btn btn-sm" id="lbZoomBtn" title="Toggle 150% zoom (or click chart)">Fit (100%)</button>
+        <button type="button" class="btn btn-sm" id="lbCloseBtn" title="Close Lightbox (Esc)">Close</button>
+      </div>
+    </div>
+
+    <div class="lightbox-stage" id="lbStage">
+      <img id="lbImage" class="lightbox-img" alt="Trade chart screenshot" />
+    </div>
+
+    <div class="lightbox-infobar" id="lbInfoBar"></div>
+  </div>
+
+  <!-- ========================================================================
+       CUSTOM DELETE CONFIRMATION MODAL (Replaces native confirm())
+       ======================================================================== -->
+  <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="modal-card">
+      <h3 class="modal-title" id="confirmModalTitle">Delete Trade</h3>
+      <p class="modal-body" id="confirmModalBody">Are you sure you want to permanently remove this trade from your local journal?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm" id="confirmCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-sm btn-danger" id="confirmProceedBtn">Delete Trade</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION STACK -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- ========================================================================
+       APPLICATION JAVASCRIPT (Vanilla JS, Zero External Dependencies)
+       ======================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ======================================================================
+         1. CONSTANTS & SCHEMA DEFINITIONS
+         ====================================================================== */
+      const DB_NAME = 'TradeJournalDB';
+      const DB_VERSION = 1;
+      const STORE_NAME = 'trades';
+
+      const SESSIONS = ['NY Open (9:30 AM)', 'London', 'Asia', 'PM Session'];
+      const SETUP_TAGS = ['Liquidity Sweep', 'IFVG', 'HTF Bias Aligned', 'FVG Reclaim', 'MSS / CISD'];
+      const GRADES = [
+        'A+ Followed All Rules',
+        'B Minor Hesitation',
+        'C FOMO / Broke Rules'
+      ];
+      const RESULTS = ['Win', 'Loss', 'Break-Even'];
+
+      const CHECKLIST_RULES = [
+        { key: 'liquiditySweep', label: 'Waited for liquidity sweep first' },
+        { key: 'ifvgClose', label: 'Confirmed candle close through IFVG' },
+        { key: 'maxDailyLimit', label: 'Risked within max daily limit' },
+        { key: 'boardroomTest', label: 'Passes the "Boardroom Test" (Can I justify this trade to a $1M risk committee?)' }
+      ];
+
+      /* ======================================================================
+         2. APPLICATION STATE
+         ====================================================================== */
+      const state = {
+        trades: [],
+        viewMode: 'gallery', // 'gallery' | 'table'
+        sidebarCollapsed: window.innerWidth < 1024,
+        editingTradeId: null,
+        filters: {
+          instrument: '',
+          setup: '',
+          grade: '',
+          result: ''
+        },
+        form: {
+          direction: 'Long',
+          result: 'Break-Even',
+          setups: new Set(),
+          beforeChart: null,
+          afterChart: null,
+          activePasteSlot: 'before', // 'before' | 'after' | null
+          userPinnedSlot: false
+        },
+        lightbox: {
+          open: false,
+          trade: null,
+          slot: 'before', // 'before' | 'after'
+          zoomed: false,
+          naturalWidth: 0,
+          naturalHeight: 0
+        },
+        pendingDeleteId: null
+      };
+
+      /* ======================================================================
+         3. DOM REFERENCES
+         ====================================================================== */
+      const dom = {
+        appShell: document.getElementById('appShell'),
+        tradeSidebar: document.getElementById('tradeSidebar'),
+        drawerBackdrop: document.getElementById('drawerBackdrop'),
+        toggleSidebarBtn: document.getElementById('toggleSidebarBtn'),
+        toggleSidebarLabel: document.getElementById('toggleSidebarLabel'),
+        toggleSidebarLabelShort: document.getElementById('toggleSidebarLabelShort'),
+        closeSidebarBtn: document.getElementById('closeSidebarBtn'),
+
+        importFileInput: document.getElementById('importFileInput'),
+        importBackupBtn: document.getElementById('importBackupBtn'),
+        exportBackupBtn: document.getElementById('exportBackupBtn'),
+
+        tradeForm: document.getElementById('tradeForm'),
+        formHeading: document.getElementById('formHeading'),
+        resetFormBtn: document.getElementById('resetFormBtn'),
+        submitTradeBtn: document.getElementById('submitTradeBtn'),
+        cancelEditBtn: document.getElementById('cancelEditBtn'),
+
+        tradeDate: document.getElementById('tradeDate'),
+        tradeSession: document.getElementById('tradeSession'),
+        tradeInstrument: document.getElementById('tradeInstrument'),
+        quickTickers: document.getElementById('quickTickers'),
+        dirLongBtn: document.getElementById('dirLongBtn'),
+        dirShortBtn: document.getElementById('dirShortBtn'),
+
+        setupPillsContainer: document.getElementById('setupPillsContainer'),
+        selectedSetupsCount: document.getElementById('selectedSetupsCount'),
+
+        riskAmount: document.getElementById('riskAmount'),
+        plannedRR: document.getElementById('plannedRR'),
+        netPnl: document.getElementById('netPnl'),
+        liveRPreview: document.getElementById('liveRPreview'),
+        resWinBtn: document.getElementById('resWinBtn'),
+        resLossBtn: document.getElementById('resLossBtn'),
+        resBeBtn: document.getElementById('resBeBtn'),
+
+        checklistCounter: document.getElementById('checklistCounter'),
+        ruleInputs: {
+          liquiditySweep: document.getElementById('ruleLiquiditySweep'),
+          ifvgClose: document.getElementById('ruleIfvgClose'),
+          maxDailyLimit: document.getElementById('ruleMaxDailyLimit'),
+          boardroomTest: document.getElementById('ruleBoardroomTest')
+        },
+
+        beforeDropzone: document.getElementById('beforeDropzone'),
+        afterDropzone: document.getElementById('afterDropzone'),
+        beforeFileInput: document.getElementById('beforeFileInput'),
+        afterFileInput: document.getElementById('afterFileInput'),
+        beforePreviewImg: document.getElementById('beforePreviewImg'),
+        afterPreviewImg: document.getElementById('afterPreviewImg'),
+        beforeSizeLabel: document.getElementById('beforeSizeLabel'),
+        afterSizeLabel: document.getElementById('afterSizeLabel'),
+
+        executionGrade: document.getElementById('executionGrade'),
+        tradeNotes: document.getElementById('tradeNotes'),
+
+        kpiNetPnl: document.getElementById('kpiNetPnl'),
+        kpiNetPnlSub: document.getElementById('kpiNetPnlSub'),
+        kpiWinRate: document.getElementById('kpiWinRate'),
+        kpiWinRateSub: document.getElementById('kpiWinRateSub'),
+        kpiAdherence: document.getElementById('kpiAdherence'),
+        kpiAdherenceSub: document.getElementById('kpiAdherenceSub'),
+        kpiAvgR: document.getElementById('kpiAvgR'),
+        kpiAvgRSub: document.getElementById('kpiAvgRSub'),
+
+        filterInstrument: document.getElementById('filterInstrument'),
+        filterSetup: document.getElementById('filterSetup'),
+        filterGrade: document.getElementById('filterGrade'),
+        filterResult: document.getElementById('filterResult'),
+        resetFiltersBtn: document.getElementById('resetFiltersBtn'),
+        tradeCountReadout: document.getElementById('tradeCountReadout'),
+        viewGalleryBtn: document.getElementById('viewGalleryBtn'),
+        viewTableBtn: document.getElementById('viewTableBtn'),
+
+        tradeHistoryContainer: document.getElementById('tradeHistoryContainer'),
+
+        lightboxModal: document.getElementById('lightboxModal'),
+        lbHeadline: document.getElementById('lbHeadline'),
+        lbBeforeBtn: document.getElementById('lbBeforeBtn'),
+        lbAfterBtn: document.getElementById('lbAfterBtn'),
+        lbZoomBtn: document.getElementById('lbZoomBtn'),
+        lbCloseBtn: document.getElementById('lbCloseBtn'),
+        lbStage: document.getElementById('lbStage'),
+        lbImage: document.getElementById('lbImage'),
+        lbInfoBar: document.getElementById('lbInfoBar'),
+
+        confirmModal: document.getElementById('confirmModal'),
+        confirmModalTitle: document.getElementById('confirmModalTitle'),
+        confirmModalBody: document.getElementById('confirmModalBody'),
+        confirmCancelBtn: document.getElementById('confirmCancelBtn'),
+        confirmProceedBtn: document.getElementById('confirmProceedBtn'),
+
+        toastContainer: document.getElementById('toastContainer')
+      };
+
+      /* ======================================================================
+         4. INDEXEDDB STORAGE MODULE ("TradeJournalDB" / "trades")
+         ====================================================================== */
+      const TradeDB = {
+        db: null,
+
+        open() {
+          if (this.db) return Promise.resolve(this.db);
+          return new Promise((resolve, reject) => {
+            if (!window.indexedDB) {
+              reject(new Error('IndexedDB is not supported in this browser.'));
+              return;
+            }
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+            request.onupgradeneeded = (event) => {
+              const db = event.target.result;
+              if (!db.objectStoreNames.contains(STORE_NAME)) {
+                const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                store.createIndex('date', 'date', { unique: false });
+                store.createIndex('instrument', 'instrument', { unique: false });
+                store.createIndex('result', 'result', { unique: false });
+                store.createIndex('grade', 'grade', { unique: false });
+                store.createIndex('createdAt', 'createdAt', { unique: false });
+              }
+            };
+
+            request.onsuccess = (event) => {
+              this.db = event.target.result;
+              resolve(this.db);
+            };
+
+            request.onerror = (event) => {
+              reject(event.target.error || new Error('Failed to open IndexedDB.'));
+            };
+          });
+        },
+
+        async getAllTrades() {
+          const db = await this.open();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => reject(req.error);
+          });
+        },
+
+        async putTrade(trade) {
+          const db = await this.open();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.put(trade);
+            req.onsuccess = () => resolve(trade);
+            req.onerror = () => reject(req.error);
+          });
+        },
+
+        async putManyTrades(trades) {
+          const db = await this.open();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            for (const trade of trades) {
+              store.put(trade);
+            }
+            tx.oncomplete = () => resolve(trades.length);
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error || new Error('Transaction aborted.'));
+          });
+        },
+
+        async deleteTrade(id) {
+          const db = await this.open();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.delete(id);
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+          });
+        }
+      };
+
+      /* ======================================================================
+         5. UTILITY HELPERS
+         ====================================================================== */
+      function getLocalTodayISO() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      function generateId() {
+        if (window.crypto && typeof crypto.randomUUID === 'function') {
+          return 'trd_' + crypto.randomUUID();
+        }
+        return 'trd_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+      }
+
+      function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function formatCurrency(val, showSign = true) {
+        const num = Number(val);
+        if (!Number.isFinite(num)) return '$0.00';
+        const clean = Math.abs(num) < 0.005 ? 0 : num;
+        const absFormatted = Math.abs(clean).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        if (!showSign) return `$${absFormatted}`;
+        if (clean > 0) return `+$${absFormatted}`;
+        if (clean < 0) return `-$${absFormatted}`;
+        return `$${absFormatted}`;
+      }
+
+      function calculateRMultiple(netPnl, riskAmount) {
+        const risk = Number(riskAmount);
+        const pnl = Number(netPnl);
+        if (!Number.isFinite(risk) || risk <= 0 || !Number.isFinite(pnl)) return null;
+        return pnl / risk;
+      }
+
+      function formatR(rVal) {
+        if (rVal === null || rVal === undefined || !Number.isFinite(rVal)) return '—';
+        const clean = Math.abs(rVal) < 0.005 ? 0 : rVal;
+        const sign = clean > 0 ? '+' : clean < 0 ? '-' : '';
+        return `${sign}${Math.abs(clean).toFixed(2)}R`;
+      }
+
+      function getChecklistScore(checklist) {
+        if (!checklist || typeof checklist !== 'object') return 0;
+        return CHECKLIST_RULES.reduce((acc, r) => acc + (checklist[r.key] ? 1 : 0), 0);
+      }
+
+      function estimateDataUrlKB(dataUrl) {
+        if (!dataUrl || typeof dataUrl !== 'string') return '';
+        const commaIdx = dataUrl.indexOf(',');
+        const b64Len = commaIdx >= 0 ? dataUrl.length - commaIdx - 1 : dataUrl.length;
+        const bytes = Math.round((b64Len * 3) / 4);
+        if (bytes < 1024) return `${bytes} B`;
+        return `${Math.round(bytes / 1024)} KB`;
+      }
+
+      function getGradeShort(grade) {
+        if (grade === 'A+ Followed All Rules') return 'A+';
+        if (grade === 'B Minor Hesitation') return 'B';
+        if (grade === 'C FOMO / Broke Rules') return 'C';
+        return grade || '—';
+      }
+
+      function getGradeBadgeClass(grade) {
+        if (grade === 'A+ Followed All Rules') return 'badge-green';
+        if (grade === 'B Minor Hesitation') return 'badge-amber';
+        return 'badge-red';
+      }
+
+      function getResultBadgeClass(result) {
+        if (result === 'Win') return 'badge-green';
+        if (result === 'Loss') return 'badge-red';
+        return 'badge-amber';
+      }
+
+      function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        dom.toastContainer.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transition = 'opacity 0.2s ease';
+          setTimeout(() => toast.remove(), 220);
+        }, 3000);
+      }
+
+      /* ======================================================================
+         6. CLIENT-SIDE IMAGE COMPRESSION (HTML5 Canvas -> WebP / JPEG ~0.85)
+         ====================================================================== */
+      function compressChartImage(fileOrBlob) {
+        return new Promise((resolve, reject) => {
+          if (!fileOrBlob || !fileOrBlob.type.startsWith('image/')) {
+            reject(new Error('Please select or paste a valid image file.'));
+            return;
+          }
+
+          const objectUrl = URL.createObjectURL(fileOrBlob);
+          const img = new Image();
+
+          img.onload = () => {
+            try {
+              const MAX_WIDTH = 1920;
+              let targetW = img.naturalWidth || img.width;
+              let targetH = img.naturalHeight || img.height;
+
+              if (targetW > MAX_WIDTH) {
+                const ratio = MAX_WIDTH / targetW;
+                targetW = MAX_WIDTH;
+                targetH = Math.round(targetH * ratio);
+              }
+
+              const canvas = document.createElement('canvas');
+              canvas.width = targetW;
+              canvas.height = targetH;
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = '#0D0F12';
+              ctx.fillRect(0, 0, targetW, targetH);
+              ctx.drawImage(img, 0, 0, targetW, targetH);
+
+              // Prefer WebP at 0.85 quality; fallback cleanly to JPEG 0.85 if unsupported
+              let dataUrl = canvas.toDataURL('image/webp', 0.85);
+              if (!dataUrl || !dataUrl.startsWith('data:image/webp')) {
+                dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+              }
+
+              resolve(dataUrl);
+            } catch (err) {
+              reject(err);
+            } finally {
+              URL.revokeObjectURL(objectUrl);
+            }
+          };
+
+          img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error('Could not decode chart image.'));
+          };
+
+          img.src = objectUrl;
+        });
+      }
+
+      /* ======================================================================
+         7. FORM STATE & UI SYNCHRONIZATION
+         ====================================================================== */
+      function syncSidebarUI() {
+        dom.appShell.classList.toggle('sidebar-collapsed', state.sidebarCollapsed);
+        dom.toggleSidebarBtn.setAttribute('aria-expanded', String(!state.sidebarCollapsed));
+        dom.toggleSidebarLabel.textContent = state.sidebarCollapsed ? 'Log Trade' : 'Hide Form';
+        dom.toggleSidebarLabelShort.textContent = state.sidebarCollapsed ? 'Log' : 'Hide';
+      }
+
+      function openSidebarIfClosed() {
+        if (state.sidebarCollapsed) {
+          state.sidebarCollapsed = false;
+          syncSidebarUI();
+        }
+      }
+
+      function setDirection(dir) {
+        state.form.direction = dir === 'Short' ? 'Short' : 'Long';
+        dom.dirLongBtn.className = 'seg-btn' + (state.form.direction === 'Long' ? ' active-green' : '');
+        dom.dirShortBtn.className = 'seg-btn' + (state.form.direction === 'Short' ? ' active-red' : '');
+      }
+
+      function setResult(res) {
+        state.form.result = RESULTS.includes(res) ? res : 'Break-Even';
+        dom.resWinBtn.className = 'seg-btn' + (state.form.result === 'Win' ? ' active-green' : '');
+        dom.resLossBtn.className = 'seg-btn' + (state.form.result === 'Loss' ? ' active-red' : '');
+        dom.resBeBtn.className = 'seg-btn' + (state.form.result === 'Break-Even' ? ' active-amber' : '');
+      }
+
+      function syncQuickTickerChips() {
+        const val = dom.tradeInstrument.value.trim().toUpperCase();
+        dom.quickTickers.querySelectorAll('.ticker-chip').forEach((chip) => {
+          chip.classList.toggle('active', chip.dataset.ticker === val);
+        });
+      }
+
+      function syncSetupPills() {
+        dom.setupPillsContainer.querySelectorAll('.setup-pill').forEach((btn) => {
+          btn.classList.toggle('selected', state.form.setups.has(btn.dataset.setup));
+        });
+        dom.selectedSetupsCount.textContent = `${state.form.setups.size} selected`;
+      }
+
+      function syncChecklistCounter() {
+        let count = 0;
+        for (const r of CHECKLIST_RULES) {
+          if (dom.ruleInputs[r.key].checked) count++;
+        }
+        dom.checklistCounter.textContent = `${count}/4`;
+        dom.checklistCounter.classList.toggle('complete', count === 4);
+      }
+
+      function syncLiveRPreview() {
+        const r = calculateRMultiple(dom.netPnl.value, dom.riskAmount.value);
+        dom.liveRPreview.className = 'r-preview-tag';
+        if (r === null) {
+          dom.liveRPreview.textContent = 'Realized R: —';
+        } else {
+          dom.liveRPreview.textContent = `Realized R: ${formatR(r)}`;
+          if (r > 0) dom.liveRPreview.classList.add('positive');
+          else if (r < 0) dom.liveRPreview.classList.add('negative');
+        }
+      }
+
+      function setActivePasteSlot(slot, userPinned = false) {
+        state.form.activePasteSlot = slot;
+        state.form.userPinnedSlot = userPinned;
+        dom.beforeDropzone.classList.toggle('paste-target', slot === 'before');
+        dom.afterDropzone.classList.toggle('paste-target', slot === 'after');
+      }
+
+      function syncChartDropzones() {
+        // Before chart
+        if (state.form.beforeChart) {
+          dom.beforeDropzone.classList.add('has-image');
+          dom.beforePreviewImg.src = state.form.beforeChart;
+          dom.beforeSizeLabel.textContent = estimateDataUrlKB(state.form.beforeChart);
+        } else {
+          dom.beforeDropzone.classList.remove('has-image');
+          dom.beforePreviewImg.removeAttribute('src');
+          dom.beforeSizeLabel.textContent = '';
+        }
+
+        // After chart
+        if (state.form.afterChart) {
+          dom.afterDropzone.classList.add('has-image');
+          dom.afterPreviewImg.src = state.form.afterChart;
+          dom.afterSizeLabel.textContent = estimateDataUrlKB(state.form.afterChart);
+        } else {
+          dom.afterDropzone.classList.remove('has-image');
+          dom.afterPreviewImg.removeAttribute('src');
+          dom.afterSizeLabel.textContent = '';
+        }
+      }
+
+      async function handleChartImageInput(slot, fileOrBlob, sourceLabel = 'uploaded') {
+        try {
+          const compressed = await compressChartImage(fileOrBlob);
+          if (slot === 'before') {
+            state.form.beforeChart = compressed;
+            // Smart workflow: after filling Before, shift paste target to After if After is empty
+            if (!state.form.afterChart) {
+              setActivePasteSlot('after', false);
+            }
+          } else {
+            state.form.afterChart = compressed;
+          }
+          syncChartDropzones();
+          showToast(
+            `${slot === 'before' ? 'Before' : 'After'} chart ${sourceLabel} (${estimateDataUrlKB(compressed)})`,
+            'success'
+          );
+        } catch (err) {
+          showToast(err.message || 'Failed to process chart image.', 'error');
+        }
+      }
+
+      function resetForm(keepDate = false) {
+        state.editingTradeId = null;
+        dom.tradeSidebar.classList.remove('is-editing');
+        dom.formHeading.textContent = 'Log Trade';
+        dom.submitTradeBtn.textContent = 'Log Trade';
+        dom.cancelEditBtn.style.display = 'none';
+
+        if (!keepDate || !dom.tradeDate.value) {
+          dom.tradeDate.value = getLocalTodayISO();
+        }
+        dom.tradeSession.value = 'NY Open (9:30 AM)';
+        dom.tradeInstrument.value = 'US30';
+        syncQuickTickerChips();
+        setDirection('Long');
+
+        state.form.setups.clear();
+        syncSetupPills();
+
+        dom.riskAmount.value = '';
+        dom.plannedRR.value = '';
+        dom.netPnl.value = '';
+        setResult('Break-Even');
+        syncLiveRPreview();
+
+        for (const r of CHECKLIST_RULES) {
+          dom.ruleInputs[r.key].checked = false;
+        }
+        syncChecklistCounter();
+
+        state.form.beforeChart = null;
+        state.form.afterChart = null;
+        dom.beforeFileInput.value = '';
+        dom.afterFileInput.value = '';
+        syncChartDropzones();
+        setActivePasteSlot('before', false);
+
+        dom.executionGrade.value = 'A+ Followed All Rules';
+        dom.tradeNotes.value = '';
+      }
+
+      function loadTradeIntoForm(trade) {
+        state.editingTradeId = trade.id;
+        dom.tradeSidebar.classList.add('is-editing');
+        dom.formHeading.textContent = 'Edit Trade';
+        dom.submitTradeBtn.textContent = 'Save Changes';
+        dom.cancelEditBtn.style.display = 'inline-flex';
+
+        dom.tradeDate.value = trade.date || getLocalTodayISO();
+        dom.tradeSession.value = SESSIONS.includes(trade.session) ? trade.session : 'NY Open (9:30 AM)';
+        dom.tradeInstrument.value = trade.instrument || 'US30';
+        syncQuickTickerChips();
+        setDirection(trade.direction || 'Long');
+
+        state.form.setups = new Set(Array.isArray(trade.setups) ? trade.setups : []);
+        syncSetupPills();
+
+        dom.riskAmount.value = trade.riskAmount !== null && trade.riskAmount !== undefined ? trade.riskAmount : '';
+        dom.plannedRR.value = trade.plannedRR || '';
+        dom.netPnl.value = trade.netPnl !== null && trade.netPnl !== undefined ? trade.netPnl : '';
+        setResult(trade.result || 'Break-Even');
+        syncLiveRPreview();
+
+        for (const r of CHECKLIST_RULES) {
+          dom.ruleInputs[r.key].checked = Boolean(trade.checklist && trade.checklist[r.key]);
+        }
+        syncChecklistCounter();
+
+        state.form.beforeChart = trade.beforeChart || null;
+        state.form.afterChart = trade.afterChart || null;
+        syncChartDropzones();
+        setActivePasteSlot(state.form.beforeChart && !state.form.afterChart ? 'after' : 'before', false);
+
+        dom.executionGrade.value = GRADES.includes(trade.grade) ? trade.grade : 'A+ Followed All Rules';
+        dom.tradeNotes.value = trade.notes || '';
+
+        openSidebarIfClosed();
+        dom.tradeSidebar.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      /* ======================================================================
+         8. FILTERING & KPI METRICS ENGINE
+         ====================================================================== */
+      function getFilteredTrades() {
+        return state.trades
+          .filter((t) => {
+            if (state.filters.instrument && t.instrument !== state.filters.instrument) return false;
+            if (state.filters.setup && (!Array.isArray(t.setups) || !t.setups.includes(state.filters.setup))) return false;
+            if (state.filters.grade && t.grade !== state.filters.grade) return false;
+            if (state.filters.result && t.result !== state.filters.result) return false;
+            return true;
+          })
+          .sort((a, b) => {
+            if (a.date !== b.date) return (b.date || '').localeCompare(a.date || '');
+            return (b.createdAt || 0) - (a.createdAt || 0);
+          });
+      }
+
+      function syncInstrumentFilterOptions() {
+        const current = state.filters.instrument;
+        const uniqueInstruments = Array.from(
+          new Set(state.trades.map((t) => t.instrument).filter(Boolean))
+        ).sort((a, b) => a.localeCompare(b));
+
+        let html = '<option value="">All Instruments</option>';
+        for (const inst of uniqueInstruments) {
+          html += `<option value="${escapeHTML(inst)}">${escapeHTML(inst)}</option>`;
+        }
+        dom.filterInstrument.innerHTML = html;
+
+        if (current && uniqueInstruments.includes(current)) {
+          dom.filterInstrument.value = current;
+        } else {
+          state.filters.instrument = '';
+          dom.filterInstrument.value = '';
+        }
+      }
+
+      function renderKPIs(filtered) {
+        const total = filtered.length;
+
+        // 1. Total Net P&L ($)
+        const totalPnl = filtered.reduce((sum, t) => sum + (Number(t.netPnl) || 0), 0);
+        dom.kpiNetPnl.textContent = formatCurrency(totalPnl, total > 0 && totalPnl !== 0);
+        dom.kpiNetPnl.className = 'kpi-value' + (totalPnl > 0 ? ' positive' : totalPnl < 0 ? ' negative' : '');
+        dom.kpiNetPnlSub.textContent = `${total} ${total === 1 ? 'trade' : 'trades'} in view`;
+
+        // 2. Win Rate (%) — strictly excluding Break-Even
+        let wins = 0;
+        let losses = 0;
+        let bes = 0;
+        for (const t of filtered) {
+          if (t.result === 'Win') wins++;
+          else if (t.result === 'Loss') losses++;
+          else bes++;
+        }
+        const decided = wins + losses;
+        if (decided === 0) {
+          dom.kpiWinRate.textContent = '—';
+          dom.kpiWinRate.className = 'kpi-value';
+        } else {
+          const wr = (wins / decided) * 100;
+          dom.kpiWinRate.textContent = `${wr.toFixed(1)}%`;
+          dom.kpiWinRate.className = 'kpi-value' + (wr >= 50 ? ' positive' : ' negative');
+        }
+        dom.kpiWinRateSub.textContent = `${wins}W · ${losses}L · ${bes}BE (excl. BE)`;
+
+        // 3. Rule Adherence Rate (%) — % graded "A+ Followed All Rules"
+        const aPlusCount = filtered.filter((t) => t.grade === 'A+ Followed All Rules').length;
+        if (total === 0) {
+          dom.kpiAdherence.textContent = '—';
+          dom.kpiAdherence.className = 'kpi-value';
+        } else {
+          const adherence = (aPlusCount / total) * 100;
+          dom.kpiAdherence.textContent = `${adherence.toFixed(1)}%`;
+          dom.kpiAdherence.className = 'kpi-value' + (adherence >= 80 ? ' positive' : adherence < 50 ? ' negative' : '');
+        }
+        dom.kpiAdherenceSub.textContent = `${aPlusCount} of ${total} graded A+`;
+
+        // 4. Average R-Multiple (only trades with Risk Amount > 0)
+        const rValues = [];
+        for (const t of filtered) {
+          const r = calculateRMultiple(t.netPnl, t.riskAmount);
+          if (r !== null) rValues.push(r);
+        }
+        if (rValues.length === 0) {
+          dom.kpiAvgR.textContent = '—';
+          dom.kpiAvgR.className = 'kpi-value';
+          dom.kpiAvgRSub.textContent = 'Based on Risk > $0';
+        } else {
+          const avgR = rValues.reduce((a, b) => a + b, 0) / rValues.length;
+          dom.kpiAvgR.textContent = formatR(avgR);
+          dom.kpiAvgR.className = 'kpi-value' + (avgR > 0 ? ' positive' : avgR < 0 ? ' negative' : '');
+          dom.kpiAvgRSub.textContent = `Across ${rValues.length} risk-sized ${rValues.length === 1 ? 'trade' : 'trades'}`;
+        }
+      }
+
+      /* ======================================================================
+         9. RENDERING: GALLERY VIEW, TABLE VIEW & EMPTY STATES
+         ====================================================================== */
+      function hasActiveFilters() {
+        return Boolean(
+          state.filters.instrument ||
+          state.filters.setup ||
+          state.filters.grade ||
+          state.filters.result
+        );
+      }
+
+      function renderApp() {
+        syncInstrumentFilterOptions();
+        const filtered = getFilteredTrades();
+        renderKPIs(filtered);
+
+        const activeFilter = hasActiveFilters();
+        dom.resetFiltersBtn.style.display = activeFilter ? 'inline-flex' : 'none';
+
+        if (activeFilter) {
+          dom.tradeCountReadout.textContent = `${filtered.length} / ${state.trades.length} trades`;
+        } else {
+          dom.tradeCountReadout.textContent = `${state.trades.length} ${state.trades.length === 1 ? 'trade' : 'trades'}`;
+        }
+
+        dom.viewGalleryBtn.classList.toggle('active', state.viewMode === 'gallery');
+        dom.viewTableBtn.classList.toggle('active', state.viewMode === 'table');
+
+        if (state.trades.length === 0) {
+          renderZeroTradesEmptyState();
+          return;
+        }
+
+        if (filtered.length === 0) {
+          renderNoMatchesEmptyState();
+          return;
+        }
+
+        if (state.viewMode === 'gallery') {
+          renderGalleryView(filtered);
+        } else {
+          renderTableView(filtered);
+        }
+      }
+
+      function renderZeroTradesEmptyState() {
+        dom.tradeHistoryContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="5" x2="8" y2="19"></line>
+                <rect x="6" y="8" width="4" height="6" fill="currentColor" stroke="none"></rect>
+                <line x1="16" y1="4" x2="16" y2="20"></line>
+                <rect x="14" y="9" width="4" height="7" fill="currentColor" stroke="none"></rect>
+              </svg>
+            </div>
+            <h3 class="empty-title">Your Trade Journal is Empty</h3>
+            <p class="empty-desc">
+              Log your first execution in the left panel, paste Before &amp; After TradingView charts with <span class="mono">Ctrl+V</span>, or import an existing JSON backup. All data stays private in your browser's IndexedDB.
+            </p>
+            <div class="empty-actions">
+              <button type="button" class="btn btn-primary" id="emptyOpenFormBtn">Log First Trade</button>
+              <button type="button" class="btn btn-accent" id="loadSampleTradesBtn">Load Sample Trades</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderNoMatchesEmptyState() {
+        dom.tradeHistoryContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+            </div>
+            <h3 class="empty-title">No Trades Match Current Filters</h3>
+            <p class="empty-desc">Adjust your Instrument, Setup Tag, Execution Grade, or Result filters to review other executions.</p>
+            <div class="empty-actions">
+              <button type="button" class="btn" id="emptyResetFiltersBtn">Reset Filters</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderGalleryView(trades) {
+        const cardsHtml = trades.map((t) => {
+          const pnlNum = Number(t.netPnl) || 0;
+          const pnlClass = pnlNum > 0 ? 'positive' : pnlNum < 0 ? 'negative' : 'neutral';
+          const rVal = calculateRMultiple(t.netPnl, t.riskAmount);
+          const dirBadgeClass = t.direction === 'Short' ? 'badge-red' : 'badge-green';
+          const resBadgeClass = getResultBadgeClass(t.result);
+          const gradeBadgeClass = getGradeBadgeClass(t.grade);
+          const checkScore = getChecklistScore(t.checklist);
+          const checkTitle = CHECKLIST_RULES.map(
+            (r) => `${t.checklist && t.checklist[r.key] ? '✓' : '✕'} ${r.label}`
+          ).join('\n');
+
+          // Charts section
+          let chartsHtml = '';
+          if (t.beforeChart && t.afterChart) {
+            chartsHtml = `
+              <div class="card-charts two-up">
+                <button type="button" class="chart-thumb-btn" data-open-lightbox="${escapeHTML(t.id)}" data-slot="before" title="Inspect Before Chart">
+                  <img src="${t.beforeChart}" alt="${escapeHTML(t.instrument)} Before chart" loading="lazy" />
+                  <span class="chart-tag-overlay">Before</span>
+                  <span class="chart-zoom-hint">Inspect</span>
+                </button>
+                <button type="button" class="chart-thumb-btn" data-open-lightbox="${escapeHTML(t.id)}" data-slot="after" title="Inspect After Chart">
+                  <img src="${t.afterChart}" alt="${escapeHTML(t.instrument)} After chart" loading="lazy" />
+                  <span class="chart-tag-overlay">After</span>
+                  <span class="chart-zoom-hint">Inspect</span>
+                </button>
+              </div>
+            `;
+          } else if (t.beforeChart || t.afterChart) {
+            const slot = t.beforeChart ? 'before' : 'after';
+            const src = t.beforeChart || t.afterChart;
+            chartsHtml = `
+              <div class="card-charts one-up">
+                <button type="button" class="chart-thumb-btn" data-open-lightbox="${escapeHTML(t.id)}" data-slot="${slot}" title="Inspect ${slot === 'before' ? 'Before' : 'After'} Chart">
+                  <img src="${src}" alt="${escapeHTML(t.instrument)} ${slot} chart" loading="lazy" />
+                  <span class="chart-tag-overlay">${slot === 'before' ? 'Before' : 'After'}</span>
+                  <span class="chart-zoom-hint">Inspect</span>
+                </button>
+              </div>
+            `;
+          } else {
+            chartsHtml = `
+              <div class="no-charts-strip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>No chart screenshots attached</span>
+              </div>
+            `;
+          }
+
+          // Setup tags
+          const tagsHtml = (Array.isArray(t.setups) && t.setups.length > 0)
+            ? `<div class="card-tags-row">${t.setups.map((s) => `<span class="tag-pill">${escapeHTML(s)}</span>`).join('')}</div>`
+            : '';
+
+          // Expandable checklist details
+          const checklistRowsHtml = CHECKLIST_RULES.map((r) => {
+            const passed = Boolean(t.checklist && t.checklist[r.key]);
+            return `
+              <div class="detail-rule-row ${passed ? 'passed' : ''}">
+                <span class="rule-status-icon ${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✕'}</span>
+                <span>${escapeHTML(r.label)}</span>
+              </div>
+            `;
+          }).join('');
+
+          const notesHtml = t.notes && t.notes.trim()
+            ? `<p class="card-notes">${escapeHTML(t.notes.trim())}</p>`
+            : '';
+
+          const riskDisplay = Number(t.riskAmount) > 0 ? formatCurrency(t.riskAmount, false) : '—';
+          const plannedDisplay = t.plannedRR && t.plannedRR.trim() ? escapeHTML(t.plannedRR.trim()) : '—';
+
+          return `
+            <article class="trade-card" data-trade-id="${escapeHTML(t.id)}">
+              <div class="trade-card-header">
+                <div class="card-id-group">
+                  <div class="card-ticker-row">
+                    <span class="ticker-text">${escapeHTML(t.instrument)}</span>
+                    <span class="badge ${dirBadgeClass}">${t.direction === 'Short' ? 'SHORT' : 'LONG'}</span>
+                    <span class="badge ${resBadgeClass}">${escapeHTML(t.result === 'Break-Even' ? 'BE' : t.result.toUpperCase())}</span>
+                  </div>
+                  <div class="card-date-session">
+                    <span>${escapeHTML(t.date)}</span>
+                    <span>·</span>
+                    <span>${escapeHTML(t.session)}</span>
+                  </div>
+                </div>
+
+                <div class="card-pnl-group">
+                  <div class="card-pnl-row">
+                    <span class="pnl-value ${pnlClass}">${formatCurrency(pnlNum, pnlNum !== 0)}</span>
+                  </div>
+                  <span class="badge ${rVal !== null ? (rVal > 0 ? 'badge-green' : rVal < 0 ? 'badge-red' : 'badge-slate') : 'badge-neutral'}">
+                    ${formatR(rVal)}
+                  </span>
+                </div>
+              </div>
+
+              ${chartsHtml}
+
+              <div class="card-body">
+                ${tagsHtml}
+
+                <div class="card-metrics-strip">
+                  <span class="metric-kv">
+                    <span class="metric-k">Risk</span>
+                    <span class="metric-v">${riskDisplay}</span>
+                  </span>
+                  <span class="metric-kv">
+                    <span class="metric-k">Plan</span>
+                    <span class="metric-v">${plannedDisplay}</span>
+                  </span>
+                  <span class="badge ${gradeBadgeClass}">${escapeHTML(t.grade)}</span>
+                  <button
+                    type="button"
+                    class="checklist-toggle-pill ${checkScore === 4 ? 'all-passed' : ''}"
+                    data-toggle-checklist="${escapeHTML(t.id)}"
+                    title="${escapeHTML(checkTitle)}"
+                  >
+                    <span>Rules ${checkScore}/4</span>
+                  </button>
+                </div>
+
+                <div class="card-checklist-details" id="checklist-details-${escapeHTML(t.id)}">
+                  ${checklistRowsHtml}
+                </div>
+
+                ${notesHtml}
+              </div>
+
+              <div class="card-footer">
+                ${(t.beforeChart || t.afterChart) ? `
+                  <button type="button" class="btn btn-ghost btn-sm" data-open-lightbox="${escapeHTML(t.id)}" data-slot="${t.beforeChart ? 'before' : 'after'}">
+                    View Charts
+                  </button>
+                ` : '<span></span>'}
+                <div class="card-footer-actions">
+                  <button type="button" class="btn btn-ghost btn-sm" data-edit-trade="${escapeHTML(t.id)}">Edit</button>
+                  <button type="button" class="btn btn-ghost btn-sm" style="color:#FCA5A5;" data-delete-trade="${escapeHTML(t.id)}">Delete</button>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('');
+
+        dom.tradeHistoryContainer.innerHTML = `<div class="gallery-grid">${cardsHtml}</div>`;
+      }
+
+      function renderTableView(trades) {
+        const rowsHtml = trades.map((t) => {
+          const pnlNum = Number(t.netPnl) || 0;
+          const pnlClass = pnlNum > 0 ? 'positive' : pnlNum < 0 ? 'negative' : 'neutral';
+          const rVal = calculateRMultiple(t.netPnl, t.riskAmount);
+          const dirBadgeClass = t.direction === 'Short' ? 'badge-red' : 'badge-green';
+          const resBadgeClass = getResultBadgeClass(t.result);
+          const gradeBadgeClass = getGradeBadgeClass(t.grade);
+          const checkScore = getChecklistScore(t.checklist);
+          const checkTitle = CHECKLIST_RULES.map(
+            (r) => `${t.checklist && t.checklist[r.key] ? '✓' : '✕'} ${r.label}`
+          ).join('\n');
+
+          const tagsHtml = (Array.isArray(t.setups) && t.setups.length > 0)
+            ? `<div class="table-tags">${t.setups.map((s) => `<span class="table-tag-pill">${escapeHTML(s)}</span>`).join('')}</div>`
+            : '<span class="mono" style="color:var(--text-muted);">—</span>';
+
+          let thumbsHtml = '<div class="mini-thumbs">';
+          if (t.beforeChart) {
+            thumbsHtml += `
+              <button type="button" class="mini-thumb-btn" data-open-lightbox="${escapeHTML(t.id)}" data-slot="before" title="Open Before Chart">
+                <img src="${t.beforeChart}" alt="Before" loading="lazy" />
+                <span class="mini-thumb-label">B</span>
+              </button>
+            `;
+          }
+          if (t.afterChart) {
+            thumbsHtml += `
+              <button type="button" class="mini-thumb-btn" data-open-lightbox="${escapeHTML(t.id)}" data-slot="after" title="Open After Chart">
+                <img src="${t.afterChart}" alt="After" loading="lazy" />
+                <span class="mini-thumb-label">A</span>
+              </button>
+            `;
+          }
+          if (!t.beforeChart && !t.afterChart) {
+            thumbsHtml += '<span class="mono" style="color:var(--text-muted);font-size:11px;">—</span>';
+          }
+          thumbsHtml += '</div>';
+
+          const riskDisplay = Number(t.riskAmount) > 0 ? formatCurrency(t.riskAmount, false) : '—';
+          const plannedDisplay = t.plannedRR && t.plannedRR.trim() ? escapeHTML(t.plannedRR.trim()) : '—';
+
+          return `
+            <tr>
+              <td>
+                <span class="mono" style="font-weight:500;">${escapeHTML(t.date)}</span>
+                <span class="table-sub">${escapeHTML(t.session)}</span>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="mono" style="font-weight:700;">${escapeHTML(t.instrument)}</span>
+                  <span class="badge ${dirBadgeClass}">${t.direction === 'Short' ? 'SHORT' : 'LONG'}</span>
+                </div>
+                ${t.notes && t.notes.trim() ? `<span class="table-sub" style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHTML(t.notes)}">${escapeHTML(t.notes)}</span>` : ''}
+              </td>
+              <td>${tagsHtml}</td>
+              <td class="mono">
+                <span>${riskDisplay}</span>
+                <span class="table-sub">Plan ${plannedDisplay}</span>
+              </td>
+              <td class="num-col mono">
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">
+                  <span class="pnl-value ${pnlClass}" style="font-size:13px;">${formatCurrency(pnlNum, pnlNum !== 0)}</span>
+                  <span class="badge ${resBadgeClass}">${escapeHTML(t.result === 'Break-Even' ? 'BE' : t.result.toUpperCase())}</span>
+                </div>
+                <span class="table-sub">${formatR(rVal)}</span>
+              </td>
+              <td>
+                <span class="badge ${gradeBadgeClass}" title="${escapeHTML(t.grade)}">${escapeHTML(getGradeShort(t.grade))}</span>
+              </td>
+              <td>
+                <span class="badge ${checkScore === 4 ? 'badge-green' : 'badge-neutral'}" title="${escapeHTML(checkTitle)}">${checkScore}/4</span>
+              </td>
+              <td>${thumbsHtml}</td>
+              <td>
+                <div class="table-actions">
+                  <button type="button" class="btn btn-ghost btn-sm" data-edit-trade="${escapeHTML(t.id)}">Edit</button>
+                  <button type="button" class="btn btn-ghost btn-sm" style="color:#FCA5A5;" data-delete-trade="${escapeHTML(t.id)}">Del</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        dom.tradeHistoryContainer.innerHTML = `
+          <div class="table-container">
+            <table class="trade-table">
+              <thead>
+                <tr>
+                  <th>Date / Session</th>
+                  <th>Instrument</th>
+                  <th>Setup Model</th>
+                  <th>Risk / Plan</th>
+                  <th class="num-col">Net P&amp;L / R</th>
+                  <th>Grade</th>
+                  <th>Rules</th>
+                  <th>Charts</th>
+                  <th class="num-col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      /* ======================================================================
+         10. FULL-SCREEN LIGHTBOX MODAL
+         ====================================================================== */
+      function openLightbox(tradeId, preferredSlot = 'before') {
+        const trade = state.trades.find((t) => t.id === tradeId);
+        if (!trade) return;
+        if (!trade.beforeChart && !trade.afterChart) return;
+
+        let slot = preferredSlot;
+        if (slot === 'before' && !trade.beforeChart) slot = 'after';
+        if (slot === 'after' && !trade.afterChart) slot = 'before';
+
+        state.lightbox.open = true;
+        state.lightbox.trade = trade;
+        state.lightbox.slot = slot;
+        state.lightbox.zoomed = false;
+
+        renderLightbox();
+        dom.lightboxModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeLightbox() {
+        state.lightbox.open = false;
+        state.lightbox.trade = null;
+        state.lightbox.zoomed = false;
+        dom.lightboxModal.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      function applyLightboxZoom() {
+        const isZoomed = state.lightbox.zoomed;
+        dom.lbStage.classList.toggle('zoomed', isZoomed);
+        dom.lbZoomBtn.textContent = isZoomed ? 'Zoom: 150%' : 'Fit (100%)';
+
+        if (isZoomed) {
+          // Scale cleanly to 150% of the stage width or natural width (whichever provides clear enlargement)
+          const stageW = dom.lbStage.clientWidth - 36;
+          const targetW = Math.max(Math.round(stageW * 1.45), Math.round((dom.lbImage.naturalWidth || 1280) * 1.15));
+          dom.lbImage.style.width = `${targetW}px`;
+          dom.lbImage.style.height = 'auto';
+        } else {
+          dom.lbImage.style.width = '';
+          dom.lbImage.style.height = '';
+        }
+      }
+
+      function renderLightbox() {
+        const t = state.lightbox.trade;
+        if (!t) return;
+
+        const slot = state.lightbox.slot;
+        const src = slot === 'before' ? t.beforeChart : t.afterChart;
+
+        dom.lbHeadline.textContent = `${t.instrument} · ${t.direction.toUpperCase()} · ${t.date} · ${t.session}`;
+
+        dom.lbBeforeBtn.disabled = !t.beforeChart;
+        dom.lbAfterBtn.disabled = !t.afterChart;
+        dom.lbBeforeBtn.classList.toggle('active', slot === 'before');
+        dom.lbAfterBtn.classList.toggle('active', slot === 'after');
+
+        dom.lbImage.src = src || '';
+        applyLightboxZoom();
+
+        const pnlNum = Number(t.netPnl) || 0;
+        const pnlClass = pnlNum > 0 ? 'positive' : pnlNum < 0 ? 'negative' : 'neutral';
+        const rVal = calculateRMultiple(t.netPnl, t.riskAmount);
+        const checkScore = getChecklistScore(t.checklist);
+        const setupsHtml = (Array.isArray(t.setups) && t.setups.length > 0)
+          ? t.setups.map((s) => `<span class="tag-pill">${escapeHTML(s)}</span>`).join('')
+          : '<span class="mono" style="color:var(--text-muted);font-size:11px;">No tags</span>';
+
+        dom.lbInfoBar.innerHTML = `
+          <div class="lb-meta-group">
+            <span class="pnl-value ${pnlClass}" style="font-size:14px;">${formatCurrency(pnlNum, pnlNum !== 0)}</span>
+            <span class="badge ${rVal !== null ? (rVal > 0 ? 'badge-green' : rVal < 0 ? 'badge-red' : 'badge-slate') : 'badge-neutral'}">${formatR(rVal)}</span>
+            <span class="badge ${getResultBadgeClass(t.result)}">${escapeHTML(t.result)}</span>
+            <span class="badge ${getGradeBadgeClass(t.grade)}">${escapeHTML(t.grade)}</span>
+            <span class="badge ${checkScore === 4 ? 'badge-green' : 'badge-neutral'}">Rules ${checkScore}/4</span>
+            <span class="mono" style="font-size:11.5px;color:var(--text-secondary);">Risk ${Number(t.riskAmount) > 0 ? formatCurrency(t.riskAmount, false) : '—'} · Plan ${escapeHTML(t.plannedRR || '—')}</span>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">${setupsHtml}</div>
+          </div>
+          ${t.notes && t.notes.trim() ? `<div class="lb-notes-box">${escapeHTML(t.notes.trim())}</div>` : ''}
+        `;
+      }
+
+      /* ======================================================================
+         11. CUSTOM CONFIRMATION MODAL (Delete Trade)
+         ====================================================================== */
+      function openDeleteConfirm(tradeId) {
+        const trade = state.trades.find((t) => t.id === tradeId);
+        if (!trade) return;
+        state.pendingDeleteId = tradeId;
+        dom.confirmModalTitle.textContent = `Delete ${trade.instrument} (${trade.date})?`;
+        dom.confirmModalBody.textContent = `This will permanently remove the ${trade.direction} trade (${formatCurrency(trade.netPnl, Number(trade.netPnl) !== 0)}) and its attached charts from IndexedDB.`;
+        dom.confirmModal.classList.add('open');
+        dom.confirmProceedBtn.focus();
+      }
+
+      function closeDeleteConfirm() {
+        state.pendingDeleteId = null;
+        dom.confirmModal.classList.remove('open');
+      }
+
+      async function confirmDeleteTrade() {
+        const id = state.pendingDeleteId;
+        if (!id) return;
+        try {
+          await TradeDB.deleteTrade(id);
+          state.trades = state.trades.filter((t) => t.id !== id);
+          if (state.editingTradeId === id) {
+            resetForm(true);
+          }
+          closeDeleteConfirm();
+          renderApp();
+          showToast('Trade deleted from journal.', 'info');
+        } catch (err) {
+          showToast('Failed to delete trade: ' + (err.message || 'Unknown error'), 'error');
+        }
+      }
+
+      /* ======================================================================
+         12. JSON BACKUP EXPORT & IMPORT
+         ====================================================================== */
+      async function exportBackupJSON() {
+        try {
+          const allTrades = await TradeDB.getAllTrades();
+          const payload = {
+            app: 'TradeJournal',
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            count: allTrades.length,
+            trades: allTrades
+          };
+
+          const jsonString = JSON.stringify(payload, null, 2);
+          const blob = new Blob([jsonString], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `trade-journal-backup-${getLocalTodayISO()}.json`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+          showToast(`Exported ${allTrades.length} ${allTrades.length === 1 ? 'trade' : 'trades'} to JSON backup.`, 'success');
+        } catch (err) {
+          showToast('Export failed: ' + (err.message || 'Unknown error'), 'error');
+        }
+      }
+
+      function sanitizeImportedTrade(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+
+        const instrument = String(raw.instrument || '').trim().toUpperCase();
+        const date = String(raw.date || '').trim();
+        if (!instrument || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+
+        const netPnl = Number(raw.netPnl);
+        const safePnl = Number.isFinite(netPnl) ? netPnl : 0;
+        const riskRaw = raw.riskAmount === '' || raw.riskAmount === null || raw.riskAmount === undefined
+          ? null
+          : Number(raw.riskAmount);
+        const safeRisk = riskRaw !== null && Number.isFinite(riskRaw) && riskRaw >= 0 ? riskRaw : null;
+
+        let result = RESULTS.includes(raw.result) ? raw.result : null;
+        if (!result) {
+          result = safePnl > 0 ? 'Win' : safePnl < 0 ? 'Loss' : 'Break-Even';
+        }
+
+        const checklist = {};
+        for (const r of CHECKLIST_RULES) {
+          checklist[r.key] = Boolean(raw.checklist && raw.checklist[r.key]);
+        }
+
+        const setups = Array.isArray(raw.setups)
+          ? raw.setups.filter((s) => typeof s === 'string' && s.trim().length > 0)
+          : [];
+
+        const isValidImg = (val) => typeof val === 'string' && val.startsWith('data:image/');
+
+        return {
+          id: typeof raw.id === 'string' && raw.id.trim() ? raw.id.trim() : generateId(),
+          date,
+          session: SESSIONS.includes(raw.session) ? raw.session : 'NY Open (9:30 AM)',
+          instrument,
+          direction: raw.direction === 'Short' ? 'Short' : 'Long',
+          setups,
+          riskAmount: safeRisk,
+          plannedRR: typeof raw.plannedRR === 'string' ? raw.plannedRR.trim() : '',
+          netPnl: safePnl,
+          result,
+          checklist,
+          beforeChart: isValidImg(raw.beforeChart) ? raw.beforeChart : null,
+          afterChart: isValidImg(raw.afterChart) ? raw.afterChart : null,
+          grade: GRADES.includes(raw.grade) ? raw.grade : 'A+ Followed All Rules',
+          notes: typeof raw.notes === 'string' ? raw.notes : '',
+          createdAt: Number.isFinite(Number(raw.createdAt)) ? Number(raw.createdAt) : Date.now(),
+          updatedAt: Number.isFinite(Number(raw.updatedAt)) ? Number(raw.updatedAt) : Date.now()
+        };
+      }
+
+      function handleImportFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const parsed = JSON.parse(String(reader.result || ''));
+            const rawArray = Array.isArray(parsed)
+              ? parsed
+              : (parsed && Array.isArray(parsed.trades) ? parsed.trades : null);
+
+            if (!rawArray) {
+              showToast('Invalid backup format. Expected a JSON array or { trades: [...] }.', 'error');
+              return;
+            }
+
+            const validTrades = [];
+            let skipped = 0;
+            for (const item of rawArray) {
+              const sanitized = sanitizeImportedTrade(item);
+              if (sanitized) validTrades.push(sanitized);
+              else skipped++;
+            }
+
+            if (validTrades.length === 0) {
+              showToast('No valid trade records found in backup file.', 'warning');
+              return;
+            }
+
+            await TradeDB.putManyTrades(validTrades);
+            state.trades = await TradeDB.getAllTrades();
+            renderApp();
+
+            const skipMsg = skipped > 0 ? ` (${skipped} skipped)` : '';
+            showToast(`Imported ${validTrades.length} ${validTrades.length === 1 ? 'trade' : 'trades'}${skipMsg}.`, 'success');
+          } catch (err) {
+            showToast('Import failed: Invalid JSON file.', 'error');
+          }
+        };
+        reader.onerror = () => {
+          showToast('Could not read the selected backup file.', 'error');
+        };
+        reader.readAsText(file);
+      }
+
+      /* ======================================================================
+         13. SAMPLE TRADES GENERATOR (Canvas-Drawn Minimalist Candlestick Charts)
+         ====================================================================== */
+      function generateCandlestickChartDataUrl(config) {
+        const w = 1280;
+        const h = 720;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+
+        // Background
+        ctx.fillStyle = '#0D0F12';
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle chart grid
+        ctx.strokeStyle = '#171C24';
+        ctx.lineWidth = 1;
+        for (let y = 70; y < h - 40; y += 75) {
+          ctx.beginPath();
+          ctx.moveTo(40, y);
+          ctx.lineTo(w - 90, y);
+          ctx.stroke();
+        }
+        for (let x = 80; x < w - 90; x += 110) {
+          ctx.beginPath();
+          ctx.moveTo(x, 48);
+          ctx.lineTo(x, h - 40);
+          ctx.stroke();
+        }
+
+        // Right price axis separator & top bar
+        ctx.strokeStyle = '#1E242D';
+        ctx.beginPath();
+        ctx.moveTo(w - 90, 48);
+        ctx.lineTo(w - 90, h - 40);
+        ctx.moveTo(40, 48);
+        ctx.lineTo(w - 40, 48);
+        ctx.stroke();
+
+        // Top chart header label
+        ctx.fillStyle = '#E6EDF3';
+        ctx.font = '600 18px "JetBrains Mono", monospace';
+        ctx.fillText(`${config.ticker} · ${config.tf} · ${config.stageLabel}`, 44, 32);
+
+        ctx.fillStyle = '#8B949E';
+        ctx.font = '500 14px "JetBrains Mono", monospace';
+        ctx.fillText(config.subtitle, w - 380, 32);
+
+        // Price coordinate mapping
+        const candles = config.candles;
+        let minP = Infinity;
+        let maxP = -Infinity;
+        for (const c of candles) {
+          if (c.l < minP) minP = c.l;
+          if (c.h > maxP) maxP = c.h;
+        }
+        const padP = (maxP - minP) * 0.14 || 10;
+        minP -= padP;
+        maxP += padP;
+
+        const plotTop = 64;
+        const plotBottom = h - 56;
+        const plotLeft = 60;
+        const plotRight = w - 115;
+        const priceToY = (p) => plotTop + ((maxP - p) / (maxP - minP)) * (plotBottom - plotTop);
+
+        // Right price ticks
+        ctx.fillStyle = '#656E7A';
+        ctx.font = '500 12px "JetBrains Mono", monospace';
+        for (let i = 0; i <= 5; i++) {
+          const p = minP + ((maxP - minP) * i) / 5;
+          const y = priceToY(p);
+          ctx.fillText(p.toFixed(1), w - 82, y + 4);
+        }
+
+        // Liquidity sweep dashed line
+        if (config.sweepLevel !== undefined) {
+          const sy = priceToY(config.sweepLevel);
+          ctx.save();
+          ctx.setLineDash([6, 5]);
+          ctx.strokeStyle = '#F59E0B';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(plotLeft, sy);
+          ctx.lineTo(plotRight, sy);
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.fillStyle = '#F59E0B';
+          ctx.font = '600 12px "JetBrains Mono", monospace';
+          ctx.fillText(config.sweepLabel || 'LIQUIDITY SWEEP', plotLeft + 8, sy - 7);
+        }
+
+        // IFVG Zone box
+        if (config.ifvg) {
+          const yTop = priceToY(config.ifvg.high);
+          const yBot = priceToY(config.ifvg.low);
+          const xStart = plotLeft + config.ifvg.startIndex * ((plotRight - plotLeft) / Math.max(candles.length + 4, 26));
+          ctx.fillStyle = 'rgba(59, 130, 246, 0.14)';
+          ctx.fillRect(xStart, yTop, plotRight - xStart, yBot - yTop);
+          ctx.strokeStyle = 'rgba(59, 130, 246, 0.55)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(xStart, yTop, plotRight - xStart, yBot - yTop);
+
+          ctx.fillStyle = '#93C5FD';
+          ctx.font = '600 12px "JetBrains Mono", monospace';
+          ctx.fillText('IFVG ZONE', xStart + 8, yTop + 15);
+        }
+
+        // Position Risk/Reward Box (Entry, SL, TP)
+        if (config.position) {
+          const pos = config.position;
+          const stepX = (plotRight - plotLeft) / Math.max(candles.length + 4, 26);
+          const px1 = plotLeft + pos.entryIdx * stepX;
+          const px2 = plotRight - 10;
+          const yEntry = priceToY(pos.entry);
+          const yTp = priceToY(pos.tp);
+          const ySl = priceToY(pos.sl);
+
+          // Target region
+          ctx.fillStyle = 'rgba(34, 197, 94, 0.11)';
+          ctx.fillRect(px1, Math.min(yEntry, yTp), px2 - px1, Math.abs(yTp - yEntry));
+
+          // Stop region
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
+          ctx.fillRect(px1, Math.min(yEntry, ySl), px2 - px1, Math.abs(ySl - yEntry));
+
+          // Entry line
+          ctx.strokeStyle = '#E6EDF3';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(px1, yEntry);
+          ctx.lineTo(px2, yEntry);
+          ctx.stroke();
+
+          ctx.fillStyle = '#22C55E';
+          ctx.font = '600 11px "JetBrains Mono", monospace';
+          ctx.fillText(`TP ${pos.tp.toFixed(1)}`, px2 - 86, yTp + (yTp < yEntry ? 14 : -6));
+
+          ctx.fillStyle = '#EF4444';
+          ctx.fillText(`SL ${pos.sl.toFixed(1)}`, px2 - 86, ySl + (ySl > yEntry ? -6 : 14));
+        }
+
+        // Draw Candlesticks
+        const totalSlots = Math.max(candles.length + 4, 26);
+        const step = (plotRight - plotLeft) / totalSlots;
+        const bodyW = Math.max(8, Math.min(18, step * 0.58));
+
+        candles.forEach((c, idx) => {
+          const cx = plotLeft + idx * step + step * 0.5;
+          const isBull = c.c >= c.o;
+          const color = isBull ? '#22C55E' : '#EF4444';
+
+          const yH = priceToY(c.h);
+          const yL = priceToY(c.l);
+          const yO = priceToY(c.o);
+          const yC = priceToY(c.c);
+
+          // Wick
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(cx, yH);
+          ctx.lineTo(cx, yL);
+          ctx.stroke();
+
+          // Body
+          const top = Math.min(yO, yC);
+          const bh = Math.max(2, Math.abs(yC - yO));
+          ctx.fillStyle = color;
+          ctx.fillRect(cx - bodyW / 2, top, bodyW, bh);
+        });
+
+        let dataUrl = canvas.toDataURL('image/webp', 0.85);
+        if (!dataUrl || !dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        }
+        return dataUrl;
+      }
+
+      async function loadSampleTrades() {
+        try {
+          const today = getLocalTodayISO();
+          const dPrev = new Date();
+          dPrev.setDate(dPrev.getDate() - 1);
+          const yesterday = `${dPrev.getFullYear()}-${String(dPrev.getMonth() + 1).padStart(2, '0')}-${String(dPrev.getDate()).padStart(2, '0')}`;
+
+          // Sample 1: US30 Long Win (NY Open)
+          const us30BeforeCandles = [
+            { o: 44180, h: 44195, l: 44162, c: 44168 },
+            { o: 44168, h: 44178, l: 44150, c: 44156 },
+            { o: 44156, h: 44165, l: 44140, c: 44148 },
+            { o: 44148, h: 44155, l: 44128, c: 44135 },
+            { o: 44135, h: 44144, l: 44124, c: 44141 },
+            { o: 44141, h: 44146, l: 44112, c: 44118 },
+            { o: 44118, h: 44125, l: 44095, c: 44105 }, // Sweep below 44120 SSL
+            { o: 44105, h: 44136, l: 44100, c: 44132 }, // Strong displacement up
+            { o: 44132, h: 44162, l: 44129, c: 44158 }, // Close through IFVG
+            { o: 44158, h: 44166, l: 44144, c: 44152 }, // Retest entry
+            { o: 44152, h: 44174, l: 44148, c: 44170 }
+          ];
+          const us30AfterCandles = [
+            ...us30BeforeCandles,
+            { o: 44170, h: 44192, l: 44166, c: 44188 },
+            { o: 44188, h: 44205, l: 44180, c: 44184 },
+            { o: 44184, h: 44218, l: 44182, c: 44214 },
+            { o: 44214, h: 44242, l: 44210, c: 44238 },
+            { o: 44238, h: 44268, l: 44230, c: 44262 },
+            { o: 44262, h: 44278, l: 44252, c: 44270 }  // Target hit
+          ];
+
+          const us30BeforeImg = generateCandlestickChartDataUrl({
+            ticker: 'US30',
+            tf: '1M',
+            stageLabel: 'BEFORE',
+            subtitle: 'NY Open · SSL Sweep + IFVG Long',
+            candles: us30BeforeCandles,
+            sweepLevel: 44122,
+            sweepLabel: 'LONDON LOW SSL SWEPT',
+            ifvg: { high: 44152, low: 44136, startIndex: 6 },
+            position: { entryIdx: 9, entry: 44152, sl: 44102, tp: 44267 }
+          });
+
+          const us30AfterImg = generateCandlestickChartDataUrl({
+            ticker: 'US30',
+            tf: '1M',
+            stageLabel: 'AFTER',
+            subtitle: 'Result: +2.30R (+$575.00)',
+            candles: us30AfterCandles,
+            sweepLevel: 44122,
+            sweepLabel: 'LONDON LOW SSL SWEPT',
+            ifvg: { high: 44152, low: 44136, startIndex: 6 },
+            position: { entryIdx: 9, entry: 44152, sl: 44102, tp: 44267 }
+          });
+
+          // Sample 2: NQ Short Loss (London)
+          const nqBeforeCandles = [
+            { o: 21110, h: 21125, l: 21104, c: 21122 },
+            { o: 21122, h: 21138, l: 21118, c: 21134 },
+            { o: 21134, h: 21148, l: 21130, c: 21145 },
+            { o: 21145, h: 21162, l: 21140, c: 21156 },
+            { o: 21156, h: 21176, l: 21150, c: 21164 }, // BSL sweep above 21165
+            { o: 21164, h: 21168, l: 21146, c: 21150 },
+            { o: 21150, h: 21156, l: 21138, c: 21142 },
+            { o: 21142, h: 21152, l: 21139, c: 21148 }
+          ];
+          const nqAfterCandles = [
+            ...nqBeforeCandles,
+            { o: 21148, h: 21154, l: 21132, c: 21136 },
+            { o: 21136, h: 21152, l: 21134, c: 21150 },
+            { o: 21150, h: 21168, l: 21147, c: 21165 },
+            { o: 21165, h: 21186, l: 21160, c: 21182 }, // Stopped out
+            { o: 21182, h: 21192, l: 21174, c: 21188 }
+          ];
+
+          const nqBeforeImg = generateCandlestickChartDataUrl({
+            ticker: 'NQ',
+            tf: '5M',
+            stageLabel: 'BEFORE',
+            subtitle: 'London · Early Short Entry',
+            candles: nqBeforeCandles,
+            sweepLevel: 21165,
+            sweepLabel: 'ASIA HIGH BSL',
+            ifvg: { high: 21155, low: 21144, startIndex: 4 },
+            position: { entryIdx: 7, entry: 21148, sl: 21178, tp: 21088 }
+          });
+
+          const nqAfterImg = generateCandlestickChartDataUrl({
+            ticker: 'NQ',
+            tf: '5M',
+            stageLabel: 'AFTER',
+            subtitle: 'Result: -1.00R (-$200.00)',
+            candles: nqAfterCandles,
+            sweepLevel: 21165,
+            sweepLabel: 'ASIA HIGH BSL',
+            ifvg: { high: 21155, low: 21144, startIndex: 4 },
+            position: { entryIdx: 7, entry: 21148, sl: 21178, tp: 21088 }
+          });
+
+          const now = Date.now();
+          const sampleTrades = [
+            {
+              id: generateId(),
+              date: today,
+              session: 'NY Open (9:30 AM)',
+              instrument: 'US30',
+              direction: 'Long',
+              setups: ['Liquidity Sweep', 'IFVG', 'HTF Bias Aligned', 'MSS / CISD'],
+              riskAmount: 250,
+              plannedRR: '1:2',
+              netPnl: 575,
+              result: 'Win',
+              checklist: {
+                liquiditySweep: true,
+                ifvgClose: true,
+                maxDailyLimit: true,
+                boardroomTest: true
+              },
+              beforeChart: us30BeforeImg,
+              afterChart: us30AfterImg,
+              grade: 'A+ Followed All Rules',
+              notes: 'Clean price action after 8:30 AM macro release. Waited patiently for 9:30 AM open sell-side sweep below London low, followed by crisp 1m candle close through IFVG. Held cleanly to opposing buy-side liquidity.',
+              createdAt: now,
+              updatedAt: now
+            },
+            {
+              id: generateId(),
+              date: yesterday,
+              session: 'London',
+              instrument: 'NQ',
+              direction: 'Short',
+              setups: ['Liquidity Sweep', 'FVG Reclaim'],
+              riskAmount: 200,
+              plannedRR: '1:2',
+              netPnl: -200,
+              result: 'Loss',
+              checklist: {
+                liquiditySweep: true,
+                ifvgClose: false,
+                maxDailyLimit: true,
+                boardroomTest: true
+              },
+              beforeChart: nqBeforeImg,
+              afterChart: nqAfterImg,
+              grade: 'B Minor Hesitation',
+              notes: 'Pre-CPI London consolidation. Entered slightly early before full displacement candle closed beneath the IFVG. Risk respected strictly at -1R.',
+              createdAt: now - 60000,
+              updatedAt: now - 60000
+            }
+          ];
+
+          await TradeDB.putManyTrades(sampleTrades);
+          state.trades = await TradeDB.getAllTrades();
+          renderApp();
+          showToast('Loaded 2 sample trades with Before & After charts.', 'success');
+        } catch (err) {
+          showToast('Could not load sample trades: ' + (err.message || 'Unknown error'), 'error');
+        }
+      }
+
+      /* ======================================================================
+         14. EVENT LISTENERS & INTERACTIONS
+         ====================================================================== */
+      function bindEvents() {
+        // Sidebar toggle
+        dom.toggleSidebarBtn.addEventListener('click', () => {
+          state.sidebarCollapsed = !state.sidebarCollapsed;
+          syncSidebarUI();
+        });
+        dom.closeSidebarBtn.addEventListener('click', () => {
+          state.sidebarCollapsed = true;
+          syncSidebarUI();
+        });
+        dom.drawerBackdrop.addEventListener('click', () => {
+          state.sidebarCollapsed = true;
+          syncSidebarUI();
+        });
+
+        // Backup Export / Import
+        dom.exportBackupBtn.addEventListener('click', exportBackupJSON);
+        dom.importBackupBtn.addEventListener('click', () => {
+          dom.importFileInput.value = '';
+          dom.importFileInput.click();
+        });
+        dom.importFileInput.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) handleImportFile(file);
+        });
+
+        // Instrument & Quick Ticker Chips
+        dom.tradeInstrument.addEventListener('input', () => {
+          syncQuickTickerChips();
+        });
+        dom.tradeInstrument.addEventListener('blur', () => {
+          dom.tradeInstrument.value = dom.tradeInstrument.value.trim().toUpperCase();
+          syncQuickTickerChips();
+        });
+        dom.quickTickers.addEventListener('click', (e) => {
+          const chip = e.target.closest('.ticker-chip');
+          if (!chip) return;
+          dom.tradeInstrument.value = chip.dataset.ticker;
+          syncQuickTickerChips();
+        });
+
+        // Direction Toggle
+        dom.dirLongBtn.addEventListener('click', () => setDirection('Long'));
+        dom.dirShortBtn.addEventListener('click', () => setDirection('Short'));
+
+        // Setup Model Multi-select Pills
+        dom.setupPillsContainer.addEventListener('click', (e) => {
+          const pill = e.target.closest('.setup-pill');
+          if (!pill) return;
+          const tag = pill.dataset.setup;
+          if (state.form.setups.has(tag)) state.form.setups.delete(tag);
+          else state.form.setups.add(tag);
+          syncSetupPills();
+        });
+
+        // Risk & P&L inputs + Auto-result detection
+        dom.riskAmount.addEventListener('input', syncLiveRPreview);
+        dom.netPnl.addEventListener('input', () => {
+          const valStr = dom.netPnl.value.trim();
+          if (valStr !== '') {
+            const num = Number(valStr);
+            if (Number.isFinite(num)) {
+              if (num > 0) setResult('Win');
+              else if (num < 0) setResult('Loss');
+              else setResult('Break-Even');
+            }
+          }
+          syncLiveRPreview();
+        });
+
+        // Manual Result override buttons
+        dom.resWinBtn.addEventListener('click', () => setResult('Win'));
+        dom.resLossBtn.addEventListener('click', () => setResult('Loss'));
+        dom.resBeBtn.addEventListener('click', () => setResult('Break-Even'));
+
+        // Checklist live counter
+        Object.values(dom.ruleInputs).forEach((checkbox) => {
+          checkbox.addEventListener('change', syncChecklistCounter);
+        });
+
+        // Visual Chart Upload, Drag & Drop, and Paste Target Selection
+        const setupDropzone = (zoneEl, fileInputEl, slot) => {
+          zoneEl.addEventListener('click', (e) => {
+            setActivePasteSlot(slot, true);
+
+            const uploadBtn = e.target.closest('[data-upload-trigger]');
+            if (uploadBtn) {
+              e.stopPropagation();
+              fileInputEl.value = '';
+              fileInputEl.click();
+              return;
+            }
+
+            const removeBtn = e.target.closest('[data-remove-chart]');
+            if (removeBtn) {
+              e.stopPropagation();
+              if (slot === 'before') state.form.beforeChart = null;
+              else state.form.afterChart = null;
+              fileInputEl.value = '';
+              syncChartDropzones();
+              setActivePasteSlot(slot, true);
+              return;
+            }
+          });
+
+          zoneEl.addEventListener('focus', () => {
+            setActivePasteSlot(slot, true);
+          });
+
+          zoneEl.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zoneEl.classList.add('drag-over');
+          });
+          zoneEl.addEventListener('dragleave', () => {
+            zoneEl.classList.remove('drag-over');
+          });
+          zoneEl.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zoneEl.classList.remove('drag-over');
+            setActivePasteSlot(slot, true);
+            const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            if (file) handleChartImageInput(slot, file, 'uploaded');
+          });
+
+          fileInputEl.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) handleChartImageInput(slot, file, 'uploaded');
+          });
+        };
+
+        setupDropzone(dom.beforeDropzone, dom.beforeFileInput, 'before');
+        setupDropzone(dom.afterDropzone, dom.afterFileInput, 'after');
+
+        // Global Ctrl+V / Cmd+V Clipboard Image Pasting
+        document.addEventListener('paste', (e) => {
+          const clipboardData = e.clipboardData || window.clipboardData;
+          if (!clipboardData || !clipboardData.items) return;
+
+          let imageFile = null;
+          for (let i = 0; i < clipboardData.items.length; i++) {
+            const item = clipboardData.items[i];
+            if (item.type && item.type.startsWith('image/')) {
+              imageFile = item.getAsFile();
+              break;
+            }
+          }
+
+          if (!imageFile) return; // Allow normal text pasting in inputs/textarea
+
+          e.preventDefault();
+          openSidebarIfClosed();
+
+          // Determine target slot: explicit clicked target, else Before if empty, else After
+          let targetSlot;
+          if (state.form.userPinnedSlot && state.form.activePasteSlot) {
+            targetSlot = state.form.activePasteSlot;
+            // After pasting into a pinned slot, release pin if the other slot is empty so second paste flows smoothly
+            state.form.userPinnedSlot = false;
+          } else {
+            targetSlot = !state.form.beforeChart ? 'before' : 'after';
+          }
+
+          handleChartImageInput(targetSlot, imageFile, 'pasted');
+        });
+
+        // Form Reset / Cancel Edit
+        dom.resetFormBtn.addEventListener('click', () => resetForm(false));
+        dom.cancelEditBtn.addEventListener('click', () => {
+          resetForm(false);
+          showToast('Edit cancelled.', 'info');
+        });
+
+        // Form Submit (Create or Update Trade)
+        dom.tradeForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const dateVal = dom.tradeDate.value.trim() || getLocalTodayISO();
+          const instrumentVal = dom.tradeInstrument.value.trim().toUpperCase();
+          if (!instrumentVal) {
+            showToast('Please enter an Instrument ticker (e.g., US30 or NQ).', 'warning');
+            dom.tradeInstrument.focus();
+            return;
+          }
+
+          const pnlRaw = dom.netPnl.value.trim();
+          const netPnlNum = pnlRaw === '' ? 0 : Number(pnlRaw);
+          if (!Number.isFinite(netPnlNum)) {
+            showToast('Please enter a valid numeric Net P&L ($).', 'warning');
+            dom.netPnl.focus();
+            return;
+          }
+
+          const riskRaw = dom.riskAmount.value.trim();
+          const riskNum = riskRaw === '' ? null : Number(riskRaw);
+          if (riskNum !== null && (!Number.isFinite(riskNum) || riskNum < 0)) {
+            showToast('Risk Amount ($) must be a positive number.', 'warning');
+            dom.riskAmount.focus();
+            return;
+          }
+
+          const isEdit = Boolean(state.editingTradeId);
+          const existing = isEdit ? state.trades.find((t) => t.id === state.editingTradeId) : null;
+          const now = Date.now();
+
+          const tradeObj = {
+            id: isEdit ? state.editingTradeId : generateId(),
+            date: dateVal,
+            session: dom.tradeSession.value,
+            instrument: instrumentVal,
+            direction: state.form.direction,
+            setups: Array.from(state.form.setups),
+            riskAmount: riskNum,
+            plannedRR: dom.plannedRR.value.trim(),
+            netPnl: netPnlNum,
+            result: state.form.result,
+            checklist: {
+              liquiditySweep: dom.ruleInputs.liquiditySweep.checked,
+              ifvgClose: dom.ruleInputs.ifvgClose.checked,
+              maxDailyLimit: dom.ruleInputs.maxDailyLimit.checked,
+              boardroomTest: dom.ruleInputs.boardroomTest.checked
+            },
+            beforeChart: state.form.beforeChart,
+            afterChart: state.form.afterChart,
+            grade: dom.executionGrade.value,
+            notes: dom.tradeNotes.value.trim(),
+            createdAt: existing ? existing.createdAt : now,
+            updatedAt: now
+          };
+
+          try {
+            await TradeDB.putTrade(tradeObj);
+            if (isEdit) {
+              state.trades = state.trades.map((t) => (t.id === tradeObj.id ? tradeObj : t));
+              showToast(`Updated ${tradeObj.instrument} trade.`, 'success');
+            } else {
+              state.trades.push(tradeObj);
+              showToast(`Logged ${tradeObj.instrument} ${tradeObj.direction} (${formatCurrency(tradeObj.netPnl, tradeObj.netPnl !== 0)}).`, 'success');
+            }
+
+            resetForm(true);
+            renderApp();
+
+            // On mobile/tablet drawer mode, close drawer after saving so user sees the logged trade immediately
+            if (window.innerWidth < 1024) {
+              state.sidebarCollapsed = true;
+              syncSidebarUI();
+            }
+          } catch (err) {
+            showToast('Failed to save trade to IndexedDB: ' + (err.message || 'Storage error'), 'error');
+          }
+        });
+
+        // Filter Bar Listeners
+        dom.filterInstrument.addEventListener('change', (e) => {
+          state.filters.instrument = e.target.value;
+          renderApp();
+        });
+        dom.filterSetup.addEventListener('change', (e) => {
+          state.filters.setup = e.target.value;
+          renderApp();
+        });
+        dom.filterGrade.addEventListener('change', (e) => {
+          state.filters.grade = e.target.value;
+          renderApp();
+        });
+        dom.filterResult.addEventListener('change', (e) => {
+          state.filters.result = e.target.value;
+          renderApp();
+        });
+        dom.resetFiltersBtn.addEventListener('click', () => {
+          resetFilters();
+        });
+
+        // View Toggle (Gallery vs Table)
+        dom.viewGalleryBtn.addEventListener('click', () => setViewMode('gallery'));
+        dom.viewTableBtn.addEventListener('click', () => setViewMode('table'));
+
+        // Delegated Actions inside Trade History Container
+        dom.tradeHistoryContainer.addEventListener('click', (e) => {
+          const lbTrigger = e.target.closest('[data-open-lightbox]');
+          if (lbTrigger) {
+            openLightbox(lbTrigger.dataset.openLightbox, lbTrigger.dataset.slot || 'before');
+            return;
+          }
+
+          const editBtn = e.target.closest('[data-edit-trade]');
+          if (editBtn) {
+            const trade = state.trades.find((t) => t.id === editBtn.dataset.editTrade);
+            if (trade) loadTradeIntoForm(trade);
+            return;
+          }
+
+          const delBtn = e.target.closest('[data-delete-trade]');
+          if (delBtn) {
+            openDeleteConfirm(delBtn.dataset.deleteTrade);
+            return;
+          }
+
+          const checkToggle = e.target.closest('[data-toggle-checklist]');
+          if (checkToggle) {
+            const detailEl = document.getElementById(`checklist-details-${checkToggle.dataset.toggleChecklist}`);
+            if (detailEl) detailEl.classList.toggle('open');
+            return;
+          }
+
+          if (e.target.closest('#loadSampleTradesBtn')) {
+            loadSampleTrades();
+            return;
+          }
+
+          if (e.target.closest('#emptyOpenFormBtn')) {
+            openSidebarIfClosed();
+            dom.tradeInstrument.focus();
+            return;
+          }
+
+          if (e.target.closest('#emptyResetFiltersBtn')) {
+            resetFilters();
+            return;
+          }
+        });
+
+        // Lightbox Controls
+        dom.lbCloseBtn.addEventListener('click', closeLightbox);
+        dom.lbBeforeBtn.addEventListener('click', () => {
+          if (state.lightbox.trade && state.lightbox.trade.beforeChart) {
+            state.lightbox.slot = 'before';
+            state.lightbox.zoomed = false;
+            renderLightbox();
+          }
+        });
+        dom.lbAfterBtn.addEventListener('click', () => {
+          if (state.lightbox.trade && state.lightbox.trade.afterChart) {
+            state.lightbox.slot = 'after';
+            state.lightbox.zoomed = false;
+            renderLightbox();
+          }
+        });
+        dom.lbZoomBtn.addEventListener('click', () => {
+          state.lightbox.zoomed = !state.lightbox.zoomed;
+          applyLightboxZoom();
+        });
+        dom.lbImage.addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.lightbox.zoomed = !state.lightbox.zoomed;
+          applyLightboxZoom();
+        });
+        dom.lbStage.addEventListener('click', (e) => {
+          if (e.target === dom.lbStage) {
+            closeLightbox();
+          }
+        });
+
+        // Custom Delete Confirmation Modal
+        dom.confirmCancelBtn.addEventListener('click', closeDeleteConfirm);
+        dom.confirmProceedBtn.addEventListener('click', confirmDeleteTrade);
+        dom.confirmModal.addEventListener('click', (e) => {
+          if (e.target === dom.confirmModal) closeDeleteConfirm();
+        });
+
+        // Global Keyboard Shortcuts (Escape, ArrowLeft, ArrowRight)
+        document.addEventListener('keydown', (e) => {
+          if (dom.confirmModal.classList.contains('open')) {
+            if (e.key === 'Escape') closeDeleteConfirm();
+            return;
+          }
+
+          if (state.lightbox.open) {
+            if (e.key === 'Escape') {
+              closeLightbox();
+            } else if (e.key === 'ArrowLeft') {
+              if (state.lightbox.trade && state.lightbox.trade.beforeChart && state.lightbox.slot !== 'before') {
+                state.lightbox.slot = 'before';
+                state.lightbox.zoomed = false;
+                renderLightbox();
+              }
+            } else if (e.key === 'ArrowRight') {
+              if (state.lightbox.trade && state.lightbox.trade.afterChart && state.lightbox.slot !== 'after') {
+                state.lightbox.slot = 'after';
+                state.lightbox.zoomed = false;
+                renderLightbox();
+              }
+            } else if (e.key === 'z' || e.key === 'Z') {
+              state.lightbox.zoomed = !state.lightbox.zoomed;
+              applyLightboxZoom();
+            }
+          }
+        });
+      }
+
+      function resetFilters() {
+        state.filters.instrument = '';
+        state.filters.setup = '';
+        state.filters.grade = '';
+        state.filters.result = '';
+        dom.filterInstrument.value = '';
+        dom.filterSetup.value = '';
+        dom.filterGrade.value = '';
+        dom.filterResult.value = '';
+        renderApp();
+      }
+
+      function setViewMode(mode) {
+        state.viewMode = mode === 'table' ? 'table' : 'gallery';
+        try {
+          localStorage.setItem('tradeJournalViewMode', state.viewMode);
+        } catch (_) {
+          // Ignore storage restrictions
+        }
+        renderApp();
+      }
+
+      /* ======================================================================
+         15. INITIALIZATION
+         ====================================================================== */
+      async function init() {
+        try {
+          const savedView = localStorage.getItem('tradeJournalViewMode');
+          if (savedView === 'gallery' || savedView === 'table') {
+            state.viewMode = savedView;
+          }
+        } catch (_) {
+          // Ignore if localStorage is unavailable
+        }
+
+        syncSidebarUI();
+        resetForm(false);
+        bindEvents();
+
+        try {
+          await TradeDB.open();
+          state.trades = await TradeDB.getAllTrades();
+        } catch (err) {
+          showToast('IndexedDB unavailable: ' + (err.message || 'Storage error'), 'error');
+          state.trades = [];
+        }
+
+        renderApp();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
